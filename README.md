@@ -14,10 +14,14 @@
 | macOS | [下载 Apple Silicon 0.97（DMG）](https://github.com/ZhichenGu/ml-play/releases/download/v0.97.0/Platform-0.97.0-macOS-arm64.dmg)。打开后将 Platform 拖入「应用程序」。已在 macOS 15.7.5 测试，尚未经过 Apple 公证。 |
 | Windows | [下载 Intel/AMD 64 位测试版（EXE）](https://github.com/ZhichenGu/ml-play/releases/download/v0.97.0/Platform-0.97.0-Windows-x64-Setup.exe)。安装包未签名，Windows 10 和 11 的真机安装与设备权限待测。 |
 
-[查看 v0.97.0 发布说明和校验文件](https://github.com/ZhichenGu/ml-play/releases/tag/v0.97.0)。下文对应 0.97 正式源码，桌面安装包为 0.97。线上网页版本以实际部署为准。Windows 安装包供测试，尚未完成 Win10/Win11 真机验收。
+[查看 v0.97.0 发布说明和校验文件](https://github.com/ZhichenGu/ml-play/releases/tag/v0.97.0)。下文对应 0.98 本地正式源码，桌面安装包为 0.97。线上网页版本以实际部署为准。Windows 安装包供测试，尚未完成 Win10/Win11 真机验收。
 
 
 手部、面部和身体动态项目可在标题旁切换学习方式。新建手部动态项目默认“只看整体轨迹 · 推荐”；旧项目保留原设置。切换方式后需重新训练，原示范保留。
+
+### 设置面板（0.98）
+
+P 设置面板按当前分类的内容调整高度，长内容可滚动；拖动顶部可手动调整，各分类在当前工作台会话内独立记忆高度。此更新已合回本地源码，网页以部署版本为准；0.97 桌面安装包不包含此调整。
 
 ### 手部交互范围（0.97）
 
@@ -102,10 +106,14 @@ A small tool inspired by Wekinator, built for interactive experiments with a cam
 | macOS | [Download for Apple Silicon (DMG, 0.97)](https://github.com/ZhichenGu/ml-play/releases/download/v0.97.0/Platform-0.97.0-macOS-arm64.dmg). Open it and drag Platform into Applications. Tested on macOS 15.7.5. This build has not been notarized by Apple. |
 | Windows | [Download the Intel/AMD x64 preview (EXE)](https://github.com/ZhichenGu/ml-play/releases/download/v0.97.0/Platform-0.97.0-Windows-x64-Setup.exe). The installer is unsigned. Installation and device access on Windows 10 and 11 are awaiting real-device tests. |
 
-[Read the v0.97.0 release notes and find the checksums](https://github.com/ZhichenGu/ml-play/releases/tag/v0.97.0). The steps below describe the 0.97 source. Desktop installers are version 0.97; the online web version depends on deployment. The Windows installer is for testing and still awaits Windows 10/11 real-device validation.
+[Read the v0.97.0 release notes and find the checksums](https://github.com/ZhichenGu/ml-play/releases/tag/v0.97.0). The steps below describe the 0.98 source. Desktop installers are version 0.97; the online web version depends on deployment. The Windows installer is for testing and still awaits Windows 10/11 real-device validation.
 
 
 Dynamic hand, face, and body projects show a feature selector beside the project title. New hand projects default to “Movement path only · Recommended”; existing settings are preserved. Changing the feature requires retraining and keeps recorded examples.
+
+### Settings panel (0.98)
+
+The P settings panel fits the current tab’s content, with scrolling for longer sections. Drag the top edge to resize; each tab remembers its height during the current workspace session. This update is in the local source; the website depends on deployment, and the 0.97 desktop installers do not include it.
 
 ### Hand interaction scope (0.97)
 

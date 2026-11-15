@@ -1493,5 +1493,6 @@
   "每次自动追踪一只手。": "Automatically tracks one hand at a time.",
   "可单手使用，也可双手同时输出。": "Use one hand or output both hands together.",
   "手部身份暂不明确，本次录制已取消。请重新录制。": "Hand identity is uncertain. This recording was cancelled. Please record again.",
-  "检测未及时完成或目标丢失，本次录制已取消。请重新录制。": "Detection timed out or tracking was lost. This recording was cancelled. Please record again."
+  "检测未及时完成或目标丢失，本次录制已取消。请重新录制。": "Detection timed out or tracking was lost. This recording was cancelled. Please record again.",
+  "拖动顶部调整高度": "Drag the top edge to resize"
 }

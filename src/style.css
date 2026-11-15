@@ -624,3 +624,5 @@ html:has(.studio) {overflow-anchor:none}
 .choice-dialog footer.coordinate-create-footer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center}.coordinate-create-footer .coordinate-create-options{margin:0;min-width:0}.coordinate-create-footer .coordinate-hand-toggle{margin:0 0 6px;gap:6px}.coordinate-create-footer .coordinate-hand-toggle button{padding:7px 10px;min-height:34px}.coordinate-create-footer .coordinate-create-options p{font-size:11px;margin:0;line-height:1.5}
 
 .toolbar-feature{width:auto;max-width:100%;font:inherit;font-size:12px;color:#344f69;background-color:#fff;border:1px solid #c7d5e5;border-radius:7px;padding:7px 30px 7px 10px;cursor:pointer}.toolbar-feature:disabled{cursor:default;opacity:.6}
+
+.settings-content{display:flow-root}.settings-resize-hint{display:block;color:#748394;font-size:11px;font-weight:400;margin-top:3px;line-height:1.4}

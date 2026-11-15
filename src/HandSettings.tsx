@@ -9,13 +9,18 @@ export function WorkspaceSettings({sections,status,attention}:{attention?:{index
   const [open,setOpen]=useState(false);
   const [tab,setTab]=useState(0);
   const trigger=useRef<HTMLButtonElement>(null), panel=useRef<HTMLElement>(null);
-  const [preferredHeight,setPreferredHeight]=useState(410);
+  const [preferredHeights,setPreferredHeights]=useState<Record<string,number>>({});
+  const [contentHeight,setContentHeight]=useState(310);
+  const [showResizeHint,setShowResizeHint]=useState(true);
+  const contentBox=useRef<HTMLDivElement>(null);
+  const sectionLabel=sections[tab]?.label??'';
   const [limit,setLimit]=useState(410);
   const minimum=Math.min(210,limit);
-  const height=Math.min(preferredHeight,limit);
+  const height=Math.min(preferredHeights[sectionLabel]??Math.max(210,Math.min(600,contentHeight)),limit);
   const drag=useRef<{id:number;offset:number}|null>(null);
   function resizeHeight(next:number) {
-    setPreferredHeight(Math.max(minimum,Math.min(limit,Math.round(next))));
+    setShowResizeHint(false);
+    setPreferredHeights(previous=>({...previous,[sectionLabel]:Math.max(minimum,Math.min(limit,Math.round(next)))}));
   }
   const statusText=attention?t(attention.label):t(status==='error'?'输出异常':status==='pending'?'输出待设置':'已就绪');
   const tabs=useRef<(HTMLButtonElement|null)[]>([]);
@@ -79,6 +84,18 @@ export function WorkspaceSettings({sections,status,attention}:{attention?:{index
     return ()=>{resize.disconnect();document.removeEventListener('scroll',place,true);window.removeEventListener('resize',place);};
   },[open]);
 
+  useLayoutEffect(()=>{
+    if(!open||!contentBox.current||!panel.current)return;
+    const body=contentBox.current,box=panel.current;
+    const measure=()=>{
+      const pane=body.parentElement!;
+      const style=getComputedStyle(pane);
+      setContentHeight(Math.ceil(body.getBoundingClientRect().height+parseFloat(style.paddingTop)+parseFloat(style.paddingBottom)+box.querySelector('header')!.getBoundingClientRect().height+box.querySelector('[role=tablist]')!.getBoundingClientRect().height+2));
+    };
+    measure();const observer=new ResizeObserver(measure);observer.observe(body);
+    return ()=>observer.disconnect();
+  },[open,tab,showResizeHint]);
+
   function navigate(event:ReactKeyboardEvent<HTMLButtonElement>,index:number) {
     const next=event.key==='ArrowRight'?(index+1)%sections.length:event.key==='ArrowLeft'?(index+outputIndex)%sections.length:event.key==='Home'?0:event.key==='End'?outputIndex:null;
     if(next===null)return;
@@ -108,13 +125,13 @@ export function WorkspaceSettings({sections,status,attention}:{attention?:{index
             const next={ArrowUp:height+32,ArrowDown:height-32,Home:minimum,End:limit}[e.key];
             if(next!==undefined){e.preventDefault();resizeHeight(next);}
           }}>
-          <strong>{t('设置')}</strong>
+          <strong>{t('设置')}</strong>{showResizeHint&&<small className="settings-resize-hint">{t('拖动顶部调整高度')}</small>}
         </div><button type="button" className="icon-button" aria-label={t('关闭设置')} onClick={()=>close(true)}><X size={17}/></button></header>
       <div role="tablist" aria-label={t('设置分类')}>{sections.map(({label:name},index)=><button key={name} ref={el=>{tabs.current[index]=el;}} type="button" role="tab" id={'setting-tab-'+index} aria-selected={tab===index} tabIndex={tab===index?0:-1} aria-controls={'hand-setting-'+index} onKeyDown={e=>navigate(e,index)} onClick={()=>setTab(index)}>
         {t(name)}{index===attentionIndex&&status!=='ready'&&<i className={'dock-dot '+status} aria-label={statusText}/>}
       </button>)}</div>
       {sections.map(({label,content},index)=><section key={label} role="tabpanel" tabIndex={0} aria-labelledby={'setting-tab-'+index} id={'hand-setting-'+index} hidden={tab!==index}>
-        {index===attentionIndex&&status!=='ready'&&<p className="dock-output-status">{statusText}</p>}{content}
+        <div className="settings-content" ref={tab===index?contentBox:undefined}>{index===attentionIndex&&status!=='ready'&&<p className="dock-output-status">{statusText}</p>}{content}</div>
       </section>)}
     </aside>
   </>;
