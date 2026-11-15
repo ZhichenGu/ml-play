@@ -20,7 +20,7 @@
 
 ## 桌面 0.97 发布批次
 
-最终 Mac/Windows 安装包与校验文件已准备，Mac 已从最终 DMG 安装到 /Applications/Platform.app，并确认 0.97、新建默认与退出重开保留。239 项回归通过；Windows 仅归档/资源验证，Win10/11 真机待测。签名与完整验证范围见 docs/RELEASING.md。GitHub Release 发布状态在上传完成后更新。
+最终 Mac/Windows 安装包与校验文件已准备，Mac 已从最终 DMG 安装到 /Applications/Platform.app，并确认 0.97、新建默认与退出重开保留。239 项回归通过；Windows 仅归档/资源验证，Win10/11 真机待测。签名与完整验证范围见 docs/RELEASING.md。Mac 已安装于本机；GitHub v0.97.0 已正式发布并标为 Latest：https://github.com/ZhichenGu/ml-play/releases/tag/v0.97.0 ，标签提交 e6e0b8f。Mac DMG、Windows x64 测试包及 SHA256SUMS.txt 均公开，GitHub 展示的安装包 SHA256 与本地一致。README 中英文下载链接及说明已更新。最终附件在 desktop/out/release-0.97.0/，旧 App 备份在其 previous-install/。
 
 ## 先读什么
 1. `AGENTS.md`：长期开发规则。
