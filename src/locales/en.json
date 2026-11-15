@@ -420,6 +420,7 @@
   "形变 + 整体轨迹": "Shape + movement path",
   "只看局部形变": "Local shape only",
   "只看整体轨迹": "Movement path only",
+  "只看整体轨迹 · 推荐": "Movement path only · Recommended",
   "录制用途": "Recording purpose",
   "训练示例": "Training example",
   "独立测试（不参与训练）": "Independent test (excluded from training)",
