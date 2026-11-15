@@ -27,7 +27,7 @@
 
 手部、面部和身体追踪均可选择“直接输出坐标”。手部支持单手 21 点、双手 42 点和推荐组合，面部/身体当前最多四点。开启摄像头后选择所需点，按 P 设置平滑与发送频率；在输出方式中选 Serial、MQTT 或 OSC，打开居中窗口，为点命名并勾选 X/Y/Z，完成连接和测试后“应用并返回”，再点击“开始输出”。XY 与镜像预览一致，Z 为相对深度。项目自动保存在当前浏览器。
 
-本版“案例代码”已包含 Processing、openFrameworks、Max/MSP、p5.js 和 TouchDesigner 的教程、官方资料链接与下载。TouchDesigner 支持 OSC In CHOP、MQTT Client DAT 和 Serial DAT。接收项目、消息格式、串口链路说明与待验证项见[坐标案例说明](public/examples/coordinates/README.md)。网页版需下载新版 OSC 桥接。已发布的 0.79 桌面包支持原单手坐标模式；本版双手及录制保护需重新打包才会进入桌面应用。线上网页版本以部署结果为准。
+本版“案例代码”已包含 Processing、openFrameworks、Max/MSP、p5.js 和 TouchDesigner 的教程、官方资料链接与下载。TouchDesigner 支持 OSC In CHOP、MQTT Client DAT 和 Serial DAT。接收项目、消息格式、串口链路说明与待验证项见[坐标案例说明](public/examples/coordinates/README.md)。网页版需下载新版 OSC 桥接。0.97 桌面包已包含单双手坐标、录制保护和标题栏学习方式切换。线上网页版本以部署结果为准。
 
 ### 可以做什么
 
@@ -99,7 +99,7 @@ A small tool inspired by Wekinator, built for interactive experiments with a cam
 | Edition | Availability |
 | --- | --- |
 | Web | **[Open Platform](https://ml-play.onrender.com/)** and choose **Continue as guest**. No installation required. Switch languages in the top-right corner. |
-| macOS | [Download for Apple Silicon (DMG, 0.79)](https://github.com/ZhichenGu/ml-play/releases/download/v0.97.0/Platform-0.97.0-macOS-arm64.dmg). Open it and drag Platform into Applications. Tested on macOS 15.7.5. This build has not been notarized by Apple. |
+| macOS | [Download for Apple Silicon (DMG, 0.97)](https://github.com/ZhichenGu/ml-play/releases/download/v0.97.0/Platform-0.97.0-macOS-arm64.dmg). Open it and drag Platform into Applications. Tested on macOS 15.7.5. This build has not been notarized by Apple. |
 | Windows | [Download the Intel/AMD x64 preview (EXE)](https://github.com/ZhichenGu/ml-play/releases/download/v0.97.0/Platform-0.97.0-Windows-x64-Setup.exe). The installer is unsigned. Installation and device access on Windows 10 and 11 are awaiting real-device tests. |
 
 [Read the v0.97.0 release notes and find the checksums](https://github.com/ZhichenGu/ml-play/releases/tag/v0.97.0). The steps below describe the 0.97 source. Desktop installers are version 0.97; the online web version depends on deployment. The Windows installer is for testing and still awaits Windows 10/11 real-device validation.
@@ -115,7 +115,7 @@ Action matching, pose classification, continuous control, dwell and relation rul
 
 Hand, face and body projects can stream coordinates directly. Hands support all 21 landmarks on one hand or all 42 on both hands, plus presets. Face and body currently support four landmarks. Press P for smoothing and rate settings; choose Serial, MQTT or OSC to open the naming window, name each point, choose X/Y/Z, connect and test, then Apply and return and Start output. XY follows the mirrored preview and Z is relative depth. Project settings save automatically in the current browser.
 
-The source version’s Examples section includes downloadable projects, guides and official references for Processing, openFrameworks, Max/MSP, p5.js and TouchDesigner. TouchDesigner supports OSC In CHOP, MQTT Client DAT and Serial DAT. See the [coordinate receiver guide](public/examples/coordinates/README.md) for formats, serial topology and pending receiver tests. Web OSC needs the updated bridge. Published v0.79 desktop installers include the original single-hand coordinate mode. The updated hand features require new desktop builds. Desktop changes require rebuilding; the online web version depends on deployment.
+The source version’s Examples section includes downloadable projects, guides and official references for Processing, openFrameworks, Max/MSP, p5.js and TouchDesigner. TouchDesigner supports OSC In CHOP, MQTT Client DAT and Serial DAT. See the [coordinate receiver guide](public/examples/coordinates/README.md) for formats, serial topology and pending receiver tests. Web OSC needs the updated bridge. The v0.97 desktop installers include single/two-hand coordinates, recording protection and the title-bar feature selector; the online web version depends on deployment.
 
 ### What it does
 
