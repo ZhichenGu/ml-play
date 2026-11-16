@@ -1,0 +1,1 @@
+export async function deleteBatch(ids:readonly string[],remove:(id:string)=>void|Promise<void>){const failed:string[]=[];for(const id of new Set(ids)){if(!id){failed.push(id);continue;}try{await remove(id);}catch{failed.push(id);}}return failed;}

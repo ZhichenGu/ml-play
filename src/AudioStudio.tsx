@@ -1,3 +1,4 @@
+import {MediaInteractionGuide} from './MediaInteractionGuide';
 import {ProjectSaveStatus,useProjectAutosave} from './ProjectSaveStatus';
 import {oscArgument} from './osc';
 import {OscPanel,sendOsc} from './OscPanel';
@@ -11,6 +12,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {ArrowLeft,Download,Pencil,AudioLines,ExternalLink} from 'lucide-react';
 import {t,messageT} from './i18n';import {OutputChoices} from './OutputChoices';import {DecimalInput} from './DecimalInput';import {SerialPanel,useSerialOutput} from './SerialPanel';import {MqttPanel,useMqttOutput} from './MqttPanel';import {RenameProjectDialog} from './ProjectLibrary';import {PresenceGate} from './objects';import {audioTitle,cleanAudioProject,saveAudioProject,rms,wavBytes,audioBase64,remapVolume,DEFAULT_VOLUME_MAP,type AudioClip,type AudioProject} from './audio';
 export function AudioStudio({initial,onBack,onSaved}:{initial:AudioProject;onBack:()=>void;onSaved:()=>void}){
+ const [showDemo,setShowDemo]=useState(false);
  const [clip,setClip]=useState<AudioClip|null>(null),[clipRevision,setClipRevision]=useState(0),[configured,setConfigured]=useState(false),[apiExpanded,setApiExpanded]=useState(false);
  const [detection,setDetection]=useState<'idle'|'waiting'|'error'>('idle');
  const [verified,setVerified]=useState(false);
@@ -50,7 +52,7 @@ export function AudioStudio({initial,onBack,onSaved}:{initial:AudioProject;onBac
    :(result?'匹配参考声音':'未匹配参考声音');
  const resultLabel=detection==='waiting'?'识别中':detection==='error'?'识别失败':result===null?'未检测':matchLabel;
  return <main className="object-studio audio-workspace">
-  <div className="object-toolbar"><button className="toolbar-back" aria-label={t('工作空间')} onClick={()=>{stop();onBack();}}><ArrowLeft size={19}/></button><h1 title={p.name}>{p.name}</h1><button className="toolbar-rename" aria-label={t('重命名')} disabled={locked} onClick={()=>setRenaming(true)}><Pencil size={15}/></button><span className="tag">{t(audioTitle(p.task))}</span><div className="object-tools"><ProjectSaveStatus error={saveError}/><button className="secondary small" disabled={locked} onClick={download}><Download size={15}/>{t('导出项目')}</button></div></div>{notice&&<p className="object-notice" role="status">{messageT(notice)}</p>}
+  {showDemo&&<MediaInteractionGuide kind={p.task} onClose={()=>setShowDemo(false)}/>}<div className="object-toolbar"><button className="toolbar-back" aria-label={t('工作空间')} onClick={()=>{stop();onBack();}}><ArrowLeft size={19}/></button><h1 title={p.name}>{p.name}</h1><button className="toolbar-rename" aria-label={t('重命名')} disabled={locked} onClick={()=>setRenaming(true)}><Pencil size={15}/></button><span className="tag">{t(audioTitle(p.task))}</span><button type="button" className="text-button interaction-explain" disabled={locked} onClick={()=>setShowDemo(true)}>{t('动画示意')}</button><div className="object-tools"><ProjectSaveStatus error={saveError}/><button className="secondary small" disabled={locked} onClick={download}><Download size={15}/>{t('导出项目')}</button></div></div>{notice&&<p className="object-notice" role="status">{messageT(notice)}</p>}
   <div className="object-grid audio-grid">
     <section className="audio-input">
       <h2>{t('麦克风输入')}</h2>

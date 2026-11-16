@@ -12,7 +12,7 @@ export type Frame = { handCount?:1|2; handSide?:'left'|'right'; handRoots?:[numb
 export const MAX_SAMPLES_PER_ACTION = 100;
 export type Sample = { id: string; frames: Frame[]; duration: number; negative: boolean; split?: 'train'|'test'; testRound?:number; testValue?:number; lostBefore?:number[]; aspectRatio?: number };
 export type Action = { handCount?:1|2; hand?:'any'|'left'|'right'; id: string; name: string; osc?:OscTarget; effect: 'indicator' | 'serial' | 'mqtt' | 'osc'; serial?: SerialMessage; mqtt?: MqttMessage; color: string; samples: Sample[]; trained: boolean; threshold: number; controlValue?:number };
-export type Project = { handTracking?:HandTracking; labBaseline?:boolean; lab?:{features:boolean;trim:boolean;ensemble:boolean}; id?:string; schemaVersion: 1; name: string; mode: Mode; feature: FeatureMode; focus?:number[]; learning?: 'dynamic'|'pose'|'continuous'|'region'|'relation'|'coordinates'; coordinates?:CoordinateConfig; relation?:RelationConfig; region?:RegionConfig; poseHoldSeconds?: number; actions: Action[]; mqtt?: BrokerConfig; serialBaudRate?: number; recordingDuration?: number; recordingDelay?: 0|1|3; updatedAt: string };
+export type Project = { handPath?:'palm'|'index'|'wrist';recommendedFeature?:FeatureMode; handTracking?:HandTracking; labBaseline?:boolean; lab?:{features:boolean;trim:boolean;ensemble:boolean}; id?:string; schemaVersion: 1; name: string; mode: Mode; feature: FeatureMode; focus?:number[]; learning?: 'dynamic'|'pose'|'continuous'|'region'|'relation'|'coordinates'; coordinates?:CoordinateConfig; relation?:RelationConfig; region?:RegionConfig; poseHoldSeconds?: number; actions: Action[]; mqtt?: BrokerConfig; serialBaudRate?: number; recordingDuration?: number; recordingDelay?: 0|1|3; updatedAt: string };
 export type Template = { actionId: string; duration: number; sequence: number[][]; energy: number; negative: boolean };
 
 export function appendSample(action: Action, sample: Sample): Action {
@@ -152,6 +152,8 @@ export class TriggerGate {
 export function validateProject(data: unknown): Project {
   const p = data as Project;
   if (!p || p.schemaVersion!==1 || typeof p.name!=='string' || !p.name.trim() || p.name.length>80 || !['hand','face','pose'].includes(p.mode) || !['shape','path','both'].includes(p.feature) || !Array.isArray(p.actions) || p.actions.length>12) throw new Error('不是支持的项目文件，或项目版本不兼容。');
+  if(p.handPath!==undefined&&(p.mode!=='hand'||!['palm','index','wrist'].includes(p.handPath)))throw Error('轨迹参考无效。');
+  if(p.recommendedFeature!==undefined&&!['path','shape','both'].includes(p.recommendedFeature))throw Error('推荐方式无效。');
   if(p.id!==undefined&&(typeof p.id!=='string'||!/^[-a-zA-Z0-9_]{1,100}$/.test(p.id)))throw new Error('项目标识无效。');
   if(p.labBaseline!==undefined&&typeof p.labBaseline!=='boolean')throw new Error('实验设置无效。');
   if(p.lab!==undefined&&(!p.lab||['features','trim','ensemble'].some(key=>typeof (p.lab as any)[key]!=='boolean')))throw new Error('实验设置无效。');

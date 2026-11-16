@@ -10,6 +10,6 @@ export function Skeleton({points,mode,focus,hidePoints=false}:{points:Point[];mo
   if(mode==='face')return <svg className="skeleton face-contours" viewBox="0 0 1000 750" preserveAspectRatio="none" aria-label={t('面部轮廓叠加层')}>{FACE_CONTOURS.map(group=><g key={group.name} data-face-contour={group.name} opacity={faceContourOpacity(group,focus)}>{group.paths.flatMap((path,i)=>path.slice(1).map((id,j)=>visible(path[j])&&visible(id)?<line key={`${i}-${j}`} x1={points[path[j]].x*1000} y1={points[path[j]].y*750} x2={points[id].x*1000} y2={points[id].y*750} stroke="#e5edf5" strokeWidth="1" vectorEffect="non-scaling-stroke"/>:null))}</g>)}</svg>;
   return <svg className="skeleton" viewBox="0 0 1000 750" preserveAspectRatio="none" aria-label={t("检测骨骼叠加层")}>
     {edges(mode).flatMap((ids,i)=>ids.slice(1).map((id,j)=>visible(ids[j])&&visible(id)?<line key={`${i}-${j}`} x1={points[ids[j]].x*1000} y1={points[ids[j]].y*750} x2={points[id].x*1000} y2={points[id].y*750} stroke="#e6e6e6" strokeWidth="3"/>:null))}
-    {!hidePoints&&points.filter((_,i)=>visible(i)).map((p,i)=><circle key={i} cx={p.x*1000} cy={p.y*750} r={4} opacity={mode==='hand'?.75:1} fill="#fff" stroke="#666666" strokeWidth="2"/>)}
+    {!hidePoints&&points.filter((_,i)=>visible(i)).map((p,i)=><circle key={i} cx={p.x*1000} cy={p.y*750} r={mode==='hand'?3.5:4} opacity={mode==='hand'?.75:1} fill="#fff" stroke="#666666" strokeWidth={mode==='hand'?1.5:2}/>)}
   </svg>;
 }

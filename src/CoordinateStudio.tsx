@@ -21,7 +21,7 @@ import {OscPanel,sendOsc} from './OscPanel';
 import {DEFAULT_MQTT_MESSAGE} from './mqtt-output';
 import {RenameProjectDialog} from './ProjectLibrary';
 
-export function CoordinateStudio({initial,onBack}:{initial:Project;onBack:()=>void}) {
+export function CoordinateStudio({initial,onBack,onExplain}:{initial:Project;onBack:()=>void;onExplain?:()=>void}) {
   const [project,setProject]=useState(()=>({...initial,coordinates:lockCoordinateScope(initial.mode,initial.coordinates??{...defaultCoordinates(initial.mode),named:false})}));
   const config=project.coordinates??{...defaultCoordinates(project.mode),named:false};
   const action=project.actions[0];
@@ -122,7 +122,7 @@ export function CoordinateStudio({initial,onBack}:{initial:Project;onBack:()=>vo
       <button className="toolbar-back" aria-label={t('工作空间')} onClick={async()=>{stop();await queue.current;onBack();}}><ArrowLeft size={19}/></button>
       <h1>{project.name}</h1><button className="toolbar-rename" aria-label={t('重命名')} onClick={()=>setRenaming(true)}><Pencil size={15}/></button>
       <span className="tag">{t(project.mode==='hand'?'手部追踪':project.mode==='face'?'面部追踪':'身体追踪')}</span><span className="tag">{t('坐标输出')}</span>{project.mode==='hand'&&<span className="tag">{t(dual?'双手':'单手')}</span>}
-      <div className="object-tools">{saved||saveError?<ProjectSaveStatus error={saveError}/>:<span className="save-state" role="status">{t('保存中…')}</span>}
+      {onExplain&&<button type="button" className="text-button interaction-explain" disabled={running} onClick={onExplain}>{t('动画示意')}</button>}<div className="object-tools">{saved||saveError?<ProjectSaveStatus error={saveError}/>:<span className="save-state" role="status">{t('保存中…')}</span>}
       <button className="secondary small" onClick={download}><Download size={15}/>{t('导出项目')}</button></div>
     </div>
     {(notice||camera.error)&&<p className="object-notice" role="alert">{messageT(notice||camera.error)}<button className="icon-button" aria-label={t('关闭提示')} onClick={()=>{setNotice('');camera.clearError();}}><X size={14}/></button></p>}

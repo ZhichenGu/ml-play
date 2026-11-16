@@ -14,10 +14,18 @@
 | macOS | [下载 Apple Silicon 0.97（DMG）](https://github.com/ZhichenGu/ml-play/releases/download/v0.97.0/Platform-0.97.0-macOS-arm64.dmg)。打开后将 Platform 拖入「应用程序」。已在 macOS 15.7.5 测试，尚未经过 Apple 公证。 |
 | Windows | [下载 Intel/AMD 64 位测试版（EXE）](https://github.com/ZhichenGu/ml-play/releases/download/v0.97.0/Platform-0.97.0-Windows-x64-Setup.exe)。安装包未签名，Windows 10 和 11 的真机安装与设备权限待测。 |
 
-[查看 v0.97.0 发布说明和校验文件](https://github.com/ZhichenGu/ml-play/releases/tag/v0.97.0)。下文对应 0.98 本地正式源码，桌面安装包为 0.97。线上网页版本以实际部署为准。Windows 安装包供测试，尚未完成 Win10/Win11 真机验收。
+[查看 v0.97.0 发布说明和校验文件](https://github.com/ZhichenGu/ml-play/releases/tag/v0.97.0)。下文对应 0.107 本地正式源码，桌面安装包为 0.97。线上网页版本以实际部署为准。Windows 安装包供测试，尚未完成 Win10/Win11 真机验收。
 
 
-手部、面部和身体动态项目可在标题旁切换学习方式。新建手部动态项目默认“只看整体轨迹 · 推荐”；旧项目保留原设置。切换方式后需重新训练，原示范保留。
+### 示意动画与动作对照（0.107）
+
+新建手部、面部、身体、视觉或声音项目后，先看对应交互的示意动画；可暂停、重播，之后也能从标题旁重看。动态动作提供“只看整体轨迹／只看局部形变／形变＋整体轨迹”三张卡片：点击预览、确定应用，确认的方式显示“推荐”；关闭不应用。动画用于解释交互，不是真实识别结果，不调用 API、不生成示范或发送输出。
+
+手部、面部和身体的动态动作均提供暖橘色“动作对照”：默认参考当前动作最新的正向训练示范，也可切换旧示范；实时留痕、回放示范、查看这次对照依次排列。形变显示关键点骨架，轨迹显示移动路径，组合同时显示；追踪丢失会断开留痕，切换动作或录制不会混入旧片段。对照用于观察差异，不是评分。
+
+标题旁可切换学习方式，改变后需重新训练，原示范保留。新建手部动态项目默认整体轨迹，用掌心中心表示整手移动；P 设置可另选食指尖或手腕，与关注哪些手指形变分开。旧项目保留原参考与规则；入门示例不同时会提示。首页每类项目支持确认后全部删除，已导出的文件不受影响。
+
+以上功能已合回本地源码；0.97 桌面包不含本轮更新，网页以部署版本为准。
 
 ### 设置面板（0.98）
 
@@ -25,7 +33,7 @@ P 设置面板按当前分类的内容调整高度，长内容可滚动；拖动
 
 ### 手部交互范围（0.97）
 
-动作匹配、姿态分类、连续控制、区域停留和动作关系使用单手，并保持当前控制手，另一只手入镜不抢占；持续丢失后才允许接替。录制中检测到换手会取消该次录制，不保存混合示范。仅“直接输出手部坐标”提供单手/双手选择；单手自动追踪一只可用的手，不要求选择左右。创建时固定项目手数，工作台不重复切换；双手项目可选单手输出或双手输出，左右手独立输出。自动单手输出优先保持当前手，短暂遮挡暂停，持续离开后才由另一只接替；原手回来不抢占。双手/混合动作学习暂缓开放，0.84 实验项目和录制保留，可导出备份，不自动转换为单手项目。本版源码已合入 main，网页以部署结果为准。桌面安装包为 0.97。
+动作匹配、姿态分类、连续控制、区域停留和动作关系使用单手，并保持当前控制手，另一只手入镜不抢占；持续丢失后才允许接替。录制中检测到换手会取消该次录制，不保存混合示范。仅“直接输出手部坐标”提供单手/双手选择；单手自动追踪一只可用的手，不要求选择左右。创建时固定项目手数，工作台不重复切换；双手项目可选单手输出或双手输出，左右手独立输出。自动单手输出优先保持当前手，短暂遮挡暂停，持续离开后才由另一只接替；原手回来不抢占。双手/混合动作学习暂缓开放，0.84 实验项目和录制保留，可导出备份，不自动转换为单手项目。本版改动已合回本地源码，GitHub 与网页以推送和部署结果为准。桌面安装包为 0.97。
 
 ### 直接输出追踪坐标（0.97）
 
@@ -106,10 +114,18 @@ A small tool inspired by Wekinator, built for interactive experiments with a cam
 | macOS | [Download for Apple Silicon (DMG, 0.97)](https://github.com/ZhichenGu/ml-play/releases/download/v0.97.0/Platform-0.97.0-macOS-arm64.dmg). Open it and drag Platform into Applications. Tested on macOS 15.7.5. This build has not been notarized by Apple. |
 | Windows | [Download the Intel/AMD x64 preview (EXE)](https://github.com/ZhichenGu/ml-play/releases/download/v0.97.0/Platform-0.97.0-Windows-x64-Setup.exe). The installer is unsigned. Installation and device access on Windows 10 and 11 are awaiting real-device tests. |
 
-[Read the v0.97.0 release notes and find the checksums](https://github.com/ZhichenGu/ml-play/releases/tag/v0.97.0). The steps below describe the 0.98 source. Desktop installers are version 0.97; the online web version depends on deployment. The Windows installer is for testing and still awaits Windows 10/11 real-device validation.
+[Read the v0.97.0 release notes and find the checksums](https://github.com/ZhichenGu/ml-play/releases/tag/v0.97.0). The steps below describe the 0.107 source. Desktop installers are version 0.97; the online web version depends on deployment. The Windows installer is for testing and still awaits Windows 10/11 real-device validation.
 
 
-Dynamic hand, face, and body projects show a feature selector beside the project title. New hand projects default to “Movement path only · Recommended”; existing settings are preserved. Changing the feature requires retraining and keeps recorded examples.
+### Illustrated guides and motion comparison (0.107)
+
+New hand, face, body, vision and audio projects open an illustrated guide with pause and replay controls; reopen it beside the title. Dynamic guides offer movement path, local shape, or both: click to preview and confirm to apply. The confirmed choice receives the Recommended label; closing discards the draft. Illustrations explain behavior, not real recognition results, and do not call APIs, create recordings or send output.
+
+Dynamic hand, face and body projects include an amber Motion comparison control. It defaults to the latest positive training example, with older examples available. Live trails, reference playback and the latest comparison show paths, landmark shapes or both according to the chosen feature. Tracking loss breaks trails; changing actions or recording does not mix old segments. Comparison is a visual aid, not a score.
+
+Change the learning feature beside the title, then retrain; recordings remain intact. New dynamic hand projects default to movement path using the palm center. P settings can select the index fingertip or wrist separately from shape focus. Existing projects keep their reference and rules; a notice explains differences from starter examples. Each project category also supports deleting all its projects after confirmation; exported files are unaffected.
+
+These changes are in the local source. The 0.97 desktop installers do not include them; the website depends on deployment.
 
 ### Settings panel (0.98)
 
@@ -117,7 +133,7 @@ The P settings panel fits the current tab’s content, with scrolling for longer
 
 ### Hand interaction scope (0.97)
 
-Action matching, pose classification, continuous control, dwell and relation rules keep one active hand; a second hand does not preempt it. Handover follows sustained loss. A detected hand change during recording cancels the take instead of saving a mixed-hand example. Only direct coordinate output offers Single/Two hands. Single automatically tracks one available hand, without asking for left or right. Project capacity is fixed at creation. Two-hand projects offer single-hand or two-hand output, with independent channels. Automatic single-hand output keeps the current hand, pauses on brief occlusion and hands over only after sustained loss; the returning hand does not take control back. Two-hand/mixed learning is on hold. Existing 0.84 experimental projects and recordings remain exportable and are not converted into single-hand data. These changes are included in main. The website version depends on deployment. Desktop installers are available at 0.97.
+Action matching, pose classification, continuous control, dwell and relation rules keep one active hand; a second hand does not preempt it. Handover follows sustained loss. A detected hand change during recording cancels the take instead of saving a mixed-hand example. Only direct coordinate output offers Single/Two hands. Single automatically tracks one available hand, without asking for left or right. Project capacity is fixed at creation. Two-hand projects offer single-hand or two-hand output, with independent channels. Automatic single-hand output keeps the current hand, pauses on brief occlusion and hands over only after sustained loss; the returning hand does not take control back. Two-hand/mixed learning is on hold. Existing 0.84 experimental projects and recordings remain exportable and are not converted into single-hand data. These changes are merged into the local source. The website version depends on deployment. Desktop installers are available at 0.97.
 
 ### Direct tracking coordinates (0.97)
 
