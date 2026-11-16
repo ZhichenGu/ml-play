@@ -9,9 +9,9 @@
 | 本地正式源码 | `/Users/zhichengu/Documents/GitHub/Wekinator_fork`，0.107 / package 0.107.0 |
 | 预览副本 | `/Users/zhichengu/Documents/Codex/2026-11-11/platform-autosave-preview`，0.107；功能实现已合回正式 |
 | 本机入口 | 预览 `http://localhost:5184/`；正式目录合回检查 `http://localhost:5185/`，服务可能随进程结束，使用前确认 |
-| GitHub | https://github.com/ZhichenGu/ml-play ，用户自行 push；文档整理前本地 HEAD `f7573df`，工作区干净。本轮文档修改未提交/推送 |
+| GitHub | https://github.com/ZhichenGu/ml-play ，用户自行 push；文档整理前本地 HEAD `f7573df`，工作区干净。交接文档已由用户提交至 `1e99757` 并推送；本轮发布记录与 README 更新未提交/推送 |
 | 线上 | https://ml-play.onrender.com/ ，最近有记录的线上核验为 0.97；本轮未查询部署，不推断仍是或已是哪个版本 |
-| 桌面发布 | GitHub v0.97.0；Mac arm64 DMG、Windows x64 测试包。Mac 本机安装记录为 0.97，新源码未重新打包 |
+| 桌面发布 | [GitHub v0.107.0](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0)，Mac arm64 DMG、Windows x64 测试包、SHA256SUMS。Mac 从最终包复制至独立临时目录启动并重开验证，未替换 /Applications 旧版；Windows 真机待验 |
 
 网页、桌面和本机不同端口不是同一项目库。换聊天沿用代码目录，无需复制仓库或迁移浏览器数据。不得把“已合回”当作“已部署/已打包”。
 
@@ -42,7 +42,7 @@ Platform 用相机/麦克风制作交互，结果输出状态灯、Serial、MQTT
 
 0.107 合回：正式目录构建与 274 项测试（244 源码 + 30 服务端）通过；35 个实现/版本文件与预览逐字节一致。正式目录实际走新建→确认形变→动作对照→刷新重开，选择与推荐保留。预览已检查三类六种示意及动态切换/暂停/重播/保存，详见 [当前验收](docs/当前交互与验收.md)。
 
-这些不证明真人交叉遮挡准确率、物理 Serial/MQTT、全部创作软件或付费 API 成功。已知不可观测的换手、未验事项及候选工作见 [限制与待办](docs/KNOWN_ISSUES.md)。目前没有另一个已授权的功能开发任务；新聊天先接手并等待用户下一项需求，不自行发版或扫全仓重构。
+这些不证明真人交叉遮挡准确率、物理 Serial/MQTT、全部创作软件或付费 API 成功。已知不可观测的换手、未验事项及候选工作见 [限制与待办](docs/KNOWN_ISSUES.md)。2026-11-16 经用户授权完成发布前检查与 v0.107.0 Release 上传：274 项测试、构建、八个 ZIP 校验、Mac 最终 DMG 启动/示意/重开项目保留、Windows 解包及 ASAR 一致性通过。安装包位于 `desktop/out/release-0.107.0/`。Mac 未公证，Windows 未签名且真机待验；本轮没有分支推送或部署。详细记录见 docs/RELEASING.md。下一项功能任务等待用户指定。
 
 ## 按需阅读
 
