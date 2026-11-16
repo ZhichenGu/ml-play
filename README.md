@@ -197,3 +197,7 @@ For tutorial verification and source/archive checks, see the [current validation
 全部当前说明与历史记录分类见[文档导航](docs/README.md)。
 
 See the [documentation index](docs/README.md) for current guides and historical records.
+
+## 继续开发 / Developer handoff
+
+新聊天先读 [当前交接](PROJECT_CONTEXT.md)；按需查 [开发导航](docs/DEVELOPMENT.md)、[设计决定](docs/DECISIONS.md)、[限制与待办](docs/KNOWN_ISSUES.md)。历史记录不作为当前配置。Start with the current handoff; load history only when tracing a specific issue.
