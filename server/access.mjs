@@ -20,7 +20,7 @@ function loginPage(message='',language='zh',accounts=true,passwordOnly=false,bui
 <link rel="icon" type="image/svg+xml" href="${platformIcon}">
 <style>
 /* Keep the access page in the same palette as the Platform workspace. */
-:root{--canvas:#e8eef6;--surface:#fff;--border:#dce2e9;--ink:#202124;--primary:#b5c9dd;--primary-text:#102c43;--focus:#4e7eb1}
+:root{--canvas:#e8eef6;--surface:#fff;--border:#dce2e9;--ink:#202124;--primary:#c4d5e6;--primary-text:#102c43;--focus:#4e7eb1}
 *{box-sizing:border-box}
 body{margin:0;background:var(--canvas);color:var(--ink);font:15px/1.5 system-ui,"PingFang SC",sans-serif}
 .access-canvas{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:16px}
@@ -38,7 +38,7 @@ input,button{width:100%;min-height:46px;border:1px solid #d6dce4;border-radius:9
 input{display:block;margin-bottom:14px;font-size:16px;color:inherit;background:var(--surface)}
 input::placeholder{color:#647184}
 button{background:var(--primary);border-color:transparent;color:var(--primary-text);font-weight:600;cursor:pointer}
-button:hover{background:#a8bfd5}
+button:hover{background:#b8cce1}
 .guest{margin-top:22px}
 .guest button{background:var(--surface);border-color:var(--border);color:#34434f}
 .guest button:hover{background:#edf2f8}
