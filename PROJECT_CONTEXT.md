@@ -6,11 +6,10 @@
 
 | 对象 | 当前记录 |
 | --- | --- |
-| 本地正式源码 | `/Users/zhichengu/Documents/GitHub/Wekinator_fork`，网页候选 0.125 / package 0.125.0 |
+| 本地正式源码 | `/Users/zhichengu/Documents/GitHub/Wekinator_fork`，网页版 0.127 / package 0.127.0 |
 | 预览副本 | `/Users/zhichengu/Documents/Codex/2026-11-11/platform-autosave-preview`，0.122；模拟 DeepSeek 和单密码入口原型 |
-| 本机入口 | 入口预览 `http://localhost:5199/`；0.125 正式候选（模拟 DeepSeek）`http://localhost:5201/`，服务可能随进程结束，使用前确认 |
-| GitHub | https://github.com/ZhichenGu/ml-play，网页通过 main 发布；实际部署以 Render 为准 |
-| 线上 | https://ml-play.onrender.com/ ，2026-11-18 通过访客入口核对 0.118（`0fcb65b`）；0.125 等待用户上传 |
+| GitHub | [ml-play](https://github.com/ZhichenGu/ml-play)，网页通过 `main` 发布。0.127 正式部署对应 [`2260bf2`](https://github.com/ZhichenGu/ml-play/commit/2260bf27feacbcef3e61c5c4788becd24f8210e3)。 |
+| 线上 | [Platform 0.127](https://ml-play.onrender.com/) 于 2026-11-19 在 Render 上线。用户已反馈本轮正式站实测通过。 |
 | 桌面发布 | [GitHub v0.107.0](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0)，Mac arm64 DMG、Windows x64 测试包、SHA256SUMS。Mac 从最终包复制至独立临时目录启动并重开验证，未替换 /Applications 旧版；Windows 真机待验 |
 
 网页、桌面和本机不同端口不是同一项目库。换聊天沿用代码目录，无需复制仓库或迁移浏览器数据。不得把“已合回”当作“已部署/已打包”。
@@ -20,7 +19,7 @@
 Platform 用相机/麦克风制作交互，结果输出状态灯、Serial、MQTT、OSC。React/TypeScript/Vite；Node 提供访问门禁与固定上游 API；Electron 复用网页和 Node。MediaPipe 是预训练关键点检测器，用户录制仅用于本地动作学习。
 
 - 手/脸/身体各六种：动态动作、姿态分类、连续控制、区域停留、动作关系、直接坐标。学习/规则单目标；只有手部坐标支持双手，单手 21 点、双手 42 点，面部/身体坐标最多四点。
-- 视觉：物体有无、计数、自定义画面条件，经用户 API；声音：关键词、声音事件、本机音量。支持参考音频、裁切、送检区域及次数限制，具体能力以当前代码为准。
+- 视觉：物体有无、计数、自定义画面条件。正式站密码登录后，DeepSeek 视觉项目默认使用内置 API；访客使用自己的 Key。声音：关键词、声音事件、本机音量。支持参考音频、裁切、送检区域及次数限制。
 - 本地自动保存、导入/导出、项目分类、重命名、单项/分类批量删除（需确认）。账号/访客不是云端项目同步。
 - 教程与接收案例包含 Processing、openFrameworks、Max/MSP、p5.js、TouchDesigner；下载案例不等于这些软件/硬件已实测。
 
@@ -40,11 +39,13 @@ Platform 用相机/麦克风制作交互，结果输出状态灯、Serial、MQTT
 
 ## 验证与下一步
 
+0.127 正式网页采用四位数单密码和直接访客入口。Render 已确认部署生效，线上中英文都只有一个密码框。访客可进站，内置 DeepSeek 请求和无 Key 请求均被拒绝。本机用模拟 DeepSeek 验证手机、电脑上的内置与自备 Key 路径，构建和 275 项测试通过。2026-11-19 用户反馈正式站实测通过，具体设备和逐项范围未提供。详见[当前验收](docs/当前交互与验收.md)。
+
 0.125 提亮访问页的低饱和灰蓝主按钮。入口间距和居中布局维持前一版，中英文手机与桌面复测通过。
 
 0.124 候选降低访问页主按钮的蓝色明度与饱和度，密码与访客入口间距 22 像素。Chrome 320×568 与 1280×840 的中英文、居中及双入口复测通过。
 
-0.123 候选整理到本地 `codex/web-0.123`。启用单密码入口和内置视觉 DeepSeek 需要部署端配置 `PLATFORM_PASSWORD_ACCOUNT` 与 `PLATFORM_DEEPSEEK_API_KEY`。访客只能用自备 Key。模拟服务、中英文主路径和限流通过验收；不改讯飞、OpenAI 或桌面安装包。
+0.123 候选验证了绑定账号的单密码原型、中英文主路径、模拟服务和登录限流。现行正式站四位数及内置 DeepSeek 的配置见[开发导航](docs/DEVELOPMENT.md#网页单密码与内置-deepseek)。
 
 0.118 网页发布候选：适配面部、身体、视觉和声音手机竖屏，手机和桌面的手部、面部及身体使用浏览器模型缓存。由用户自行上传 GitHub。使用现有账号、访客和自备 API 凭证流程。验收范围见[当前交互与验收](docs/当前交互与验收.md)。
 
