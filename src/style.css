@@ -885,3 +885,78 @@ html:has(.studio) {overflow-anchor:none}
   border-radius:16px 16px 0 0;z-index:48;padding-bottom:env(safe-area-inset-bottom);
  }
 }
+
+.mobile-media-config-toggle,.mobile-media-dock,.mobile-audio-event-action,.mobile-vision-result {display:none}
+@media (max-width:600px) and (orientation:portrait) and (pointer:coarse) and (hover:none) {
+ html:has(:is(.mobile-hand-studio,.mobile-hand-coordinates,.visual-detection,.audio-workspace)) {
+  scroll-padding-block-end:calc(76px + env(safe-area-inset-bottom));
+ }
+
+ .app:has(:is(.visual-detection,.audio-workspace))>.topbar {display:none}
+ :is(.visual-detection,.audio-workspace) {
+  --media-dock-bottom:max(10px,env(safe-area-inset-bottom));
+  padding:0 12px calc(76px + env(safe-area-inset-bottom));
+ }
+ :is(.visual-detection,.audio-workspace) .object-toolbar {
+  align-items:center;flex-wrap:wrap;gap:4px 7px;padding:7px 0;
+ }
+ :is(.visual-detection,.audio-workspace) .object-toolbar h1 {min-width:0;font-size:17px;overflow-wrap:anywhere}
+ :is(.visual-detection,.audio-workspace) .object-toolbar :is(.toolbar-back,.toolbar-rename,.interaction-explain) {min-height:44px}
+ :is(.visual-detection,.audio-workspace) .object-toolbar .tag {display:none}
+ :is(.visual-detection,.audio-workspace) .object-toolbar .object-tools {gap:5px}
+ :is(.visual-detection,.audio-workspace) .object-grid {gap:8px;grid-template-columns:minmax(0,1fr)}
+ :is(.visual-detection,.audio-workspace) .object-grid :is(.object-camera,.object-config,.hand-feedback,.audio-input,.audio-sample-panel) {
+  min-width:0;padding:9px;
+ }
+ :is(.visual-detection,.audio-workspace) .object-grid h2 {font-size:14px;margin-bottom:5px}
+ :is(.visual-detection,.audio-workspace) :is(.object-help,.object-consent) {font-size:12px;line-height:1.4}
+ :is(.visual-detection,.audio-workspace) .object-consent {margin:6px 0;align-items:flex-start}
+ :is(.visual-detection,.audio-workspace) .object-consent input {flex:none;margin-top:2px}
+ :is(.visual-detection,.audio-workspace) :is(input:not([type=checkbox]):not([type=range]),select,textarea) {font-size:16px}
+ :is(.visual-detection,.audio-workspace) .hand-settings-trigger {bottom:var(--media-dock-bottom);min-height:46px}
+ :is(.visual-detection,.audio-workspace) .hand-settings-trigger kbd {display:none}
+ :is(.visual-detection,.audio-workspace) .hand-settings-panel {
+  left:0!important;bottom:0!important;width:100%!important;height:min(440px,68dvh)!important;
+  border-radius:16px 16px 0 0;z-index:48;padding-bottom:env(safe-area-inset-bottom);
+ }
+ .visual-detection .object-config {grid-row:1}
+ .visual-detection .object-camera {grid-row:2;width:100%}
+ .visual-detection .object-camera>.object-help {display:none}
+ .mobile-vision-result {display:flex;align-items:center;gap:7px;margin:3px 0 6px;font-size:13px;color:#284863}
+ .mobile-vision-result .object-lamp {flex:none;width:10px;height:10px}
+ .visual-detection .object-camera-title {margin-bottom:4px}
+ .visual-detection .region-toolbar {margin-bottom:4px;gap:4px 7px}
+ .visual-detection .region-toolbar button,.visual-detection .vision-actions button {min-height:38px;padding:5px 7px;font-size:12px}
+ .visual-detection .object-preview {width:min(100%,calc(var(--frame-ratio) * 28svh));min-height:0;height:auto;aspect-ratio:var(--frame-ratio);margin-inline:auto}
+ .visual-detection .object-preview .camera-idle {min-height:0;padding:6px}
+ .visual-detection :is(.desktop-vision-primary,.object-preview .camera-idle .primary,.floating-preview) {display:none}
+ .visual-detection .vision-actions {gap:4px;margin:4px 0}
+ .visual-detection .mobile-media-config-toggle {display:flex;width:100%;justify-content:space-between;min-height:44px;text-align:left}
+ .mobile-media-config-toggle span {display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 9px}
+ .mobile-media-config-toggle small {font-weight:400;color:#52677b}
+ .mobile-media-config-toggle[aria-expanded=true] svg {transform:rotate(180deg)}
+ #mobile-vision-config[data-mobile-open=false] {display:none}
+ #mobile-vision-config[data-mobile-open=true] {margin-top:9px}
+ .visual-detection .object-result {padding:7px;margin:0;min-height:0}
+ .visual-detection .object-result p {margin-block:4px}
+ .desktop-audio-event-action {display:none}
+ button.mobile-audio-event-action {display:inline-flex}
+ span.mobile-audio-event-action {display:inline}
+ .mobile-media-dock,.audio-input .audio-primary-actions {
+  position:fixed;z-index:44;inset:auto 0 0;display:flex;gap:6px;margin:0;
+  padding:8px 10px var(--media-dock-bottom) calc(var(--settings-button-width,88px) + 20px);
+  border-top:1px solid #d9e3ed;background:#f8fafc;
+ }
+ :is(.mobile-media-dock,.audio-input .audio-primary-actions) button {
+  flex:1;min-width:0;min-height:46px;justify-content:center;padding:5px 6px;white-space:normal;font-size:12px;
+ }
+ .audio-input .audio-preview {min-height:92px;padding:8px;gap:4px}
+ .audio-input .audio-preview>svg {width:18px;height:18px}
+ .audio-workspace .audio-feedback {margin-top:0}
+ .audio-workspace .audio-readings {gap:6px}
+ .audio-workspace .audio-readings>div {padding:8px}
+ .audio-workspace .audio-comparison {gap:7px}
+ .audio-workspace .audio-sample-panel .object-buttons {gap:5px;margin:5px 0}
+ .audio-workspace .audio-sample-panel .object-buttons button {min-height:40px}
+ .audio-event-workspace .audio-preview {min-height:72px}
+}

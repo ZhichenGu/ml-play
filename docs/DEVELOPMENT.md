@@ -55,6 +55,7 @@ React 18.3 + TS/Vite、Lucide、普通 CSS；MediaPipe Tasks Vision 0.10.35。Wo
 | `src/core.ts`、`learning.ts`、`continuous.ts` | 项目类型/校验、DTW、分类与回归 |
 | `src/lab-motion.ts`、`LabPanel.tsx`、`lab-compare.worker.ts` | 已合入正式版的增强与独立测试对比，Lab命名不表示未实现 |
 | `src/vision.worker.ts`、`focus.ts` | MediaPipe检测、选点/特征重算 |
+| `src/camera-assets.ts`、`useLandmarkCamera.ts` | 三种追踪的模型与 WASM 浏览器缓存、启动进度、坐标摄像头生命周期 |
 | `src/CoordinateStudio.tsx`、`coordinates.ts`、`coordinate-detector.ts` | 坐标选点、格式与限速、模型兼容回退 |
 | `src/CoordinateOutputDialog.tsx`、`CameraPlaceholder.tsx` | 命名与选轴窗口、共用摄像头开启入口 |
 | `src/Skeleton.tsx`、`PointPicker.tsx`、`face-visual.ts` | 骨骼渲染、选点和面部简洁显示 |

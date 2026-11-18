@@ -14,8 +14,16 @@
 | macOS | [下载 Apple Silicon 0.107（DMG）](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-macOS-arm64.dmg)。打开后将 Platform 拖入「应用程序」。已在 macOS 15.7.5 测试，尚未经过 Apple 公证。 |
 | Windows | [下载 Intel/AMD 64 位测试版（EXE）](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-Windows-x64-Setup.exe)。安装包未签名，Windows 10 和 11 的真机安装与设备权限待测。 |
 
-[查看 v0.107.0 发布说明和校验文件](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0)。网页源码为 0.114。手机手部追踪首次加载后会缓存模型，重开摄像头或页面时优先复用。手机竖屏首页、新建页和手部追踪工作台使用紧凑布局。桌面安装包为 0.107，线上网页版本以实际部署为准。Windows 安装包供测试，尚未完成 Win10/Win11 真机验收。
+[查看 v0.107.0 发布说明和校验文件](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0)。正式网页为 0.114，桌面安装包为 0.107。Windows 安装包供测试，尚未完成 Win10/Win11 真机验收。
 
+
+### 0.118 本机网页预览
+
+在运行预览服务的 Mac 上打开 [0.118 预览](http://127.0.0.1:5198/)。手机竖屏的首页按类别列出项目。手部、面部和身体追踪把当前步骤放在固定底栏，视觉可展开「目标与 API」，声音把录音与音量操作放在底栏。桌面浏览器使用原工作台布局。设置和详细记录可按需展开。
+
+手机与电脑的手部、面部和身体追踪共用浏览器模型缓存。首次使用某个追踪类型需加载该类型的模型；模型及共用运行文件仍在缓存中时，重开摄像头或关页后重开可直接初始化检测。预览和正式站的项目分开保存，可用导出与导入在两者之间迁移。
+
+正式网站为 **0.114**，已上线手机手部模型缓存。桌面安装包为 **0.107**。预览的实际验证与待验事项见 [当前交互与验收](docs/当前交互与验收.md)。
 
 ### 示意动画与动作对照（0.107）
 
@@ -39,7 +47,7 @@ P 设置面板按当前分类的内容调整高度，长内容可滚动；拖动
 
 手部、面部和身体追踪均可选择“直接输出坐标”。手部支持单手 21 点、双手 42 点和推荐组合，面部/身体当前最多四点。开启摄像头后选择所需点，按 P 设置平滑与发送频率；在输出方式中选 Serial、MQTT 或 OSC，打开居中窗口，为点命名并勾选 X/Y/Z，完成连接和测试后“应用并返回”，再点击“开始输出”。XY 与镜像预览一致，Z 为相对深度。项目自动保存在当前浏览器。
 
-本版“案例代码”已包含 Processing、openFrameworks、Max/MSP、p5.js 和 TouchDesigner 的教程、官方资料链接与下载。TouchDesigner 支持 OSC In CHOP、MQTT Client DAT 和 Serial DAT。接收项目、消息格式、串口链路说明与待验证项见[坐标案例说明](public/examples/coordinates/README.md)。网页版需下载新版 OSC 桥接。0.97 桌面包已包含单双手坐标、录制保护和标题栏学习方式切换。线上网页版本以部署结果为准。
+本版“案例代码”已包含 Processing、openFrameworks、Max/MSP、p5.js 和 TouchDesigner 的教程、官方资料链接与下载。TouchDesigner 支持 OSC In CHOP、MQTT Client DAT 和 Serial DAT。接收项目、消息格式、串口链路说明与待验证项见[坐标案例说明](public/examples/coordinates/README.md)。网页版需下载新版 OSC 桥接。0.107 桌面包已包含单双手坐标、录制保护和标题栏学习方式切换。线上网页版本以部署结果为准。
 
 ### 可以做什么
 
@@ -114,8 +122,16 @@ A small tool inspired by Wekinator, built for interactive experiments with a cam
 | macOS | [Download for Apple Silicon (DMG, 0.107)](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-macOS-arm64.dmg). Open it and drag Platform into Applications. Tested on macOS 15.7.5. This build has not been notarized by Apple. |
 | Windows | [Download the Intel/AMD x64 preview (EXE)](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-Windows-x64-Setup.exe). The installer is unsigned. Installation and device access on Windows 10 and 11 are awaiting real-device tests. |
 
-[Read the v0.107.0 release notes and find the checksums](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0). The web source is version 0.114. Hand tracking on phones caches the model after the first load and reuses it when the camera or page is reopened. On phones in portrait orientation, the home page, project creation, and hand-tracking workspace use compact layouts. Desktop installers are version 0.107. The live website version depends on deployment. The Windows installer is for testing and still awaits Windows 10/11 real-device validation.
+[Read the v0.107.0 release notes and find the checksums](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0). The live website is version 0.114. Desktop installers are version 0.107. The Windows installer is for testing and still awaits Windows 10/11 real-device validation.
 
+
+### Local web preview 0.118
+
+Open the [0.118 preview](http://127.0.0.1:5198/) on the Mac running the preview server. The portrait phone layout groups projects by category. Hand, face, and body tracking keep the current action in a fixed bottom bar. Vision has an expandable **Target and API** panel, and audio keeps recording and volume controls in the bottom bar. Desktop browsers retain the existing workspace layout. Settings and detailed results can be opened as needed.
+
+Hand, face, and body tracking share a browser cache on phones and computers. The first use of a tracking type loads its model. When the model and shared runtime files are still cached, reopening the camera or page skips the download and initializes the detector. The preview and the live site store projects separately. Export and import projects to move them between sites.
+
+The live website is **0.114**, with model caching for hand tracking in the phone layout. Desktop installers are **0.107**. See the [verification record](docs/当前交互与验收.md) for the preview checks and outstanding tests.
 
 ### Illustrated guides and motion comparison (0.107)
 
@@ -139,7 +155,7 @@ Action matching, pose classification, continuous control, dwell and relation rul
 
 Hand, face and body projects can stream coordinates directly. Hands support all 21 landmarks on one hand or all 42 on both hands, plus presets. Face and body currently support four landmarks. Press P for smoothing and rate settings; choose Serial, MQTT or OSC to open the naming window, name each point, choose X/Y/Z, connect and test, then Apply and return and Start output. XY follows the mirrored preview and Z is relative depth. Project settings save automatically in the current browser.
 
-The source version’s Examples section includes downloadable projects, guides and official references for Processing, openFrameworks, Max/MSP, p5.js and TouchDesigner. TouchDesigner supports OSC In CHOP, MQTT Client DAT and Serial DAT. See the [coordinate receiver guide](public/examples/coordinates/README.md) for formats, serial topology and pending receiver tests. Web OSC needs the updated bridge. The v0.97 desktop installers include single/two-hand coordinates, recording protection and the title-bar feature selector; the online web version depends on deployment.
+The source version’s Examples section includes downloadable projects, guides and official references for Processing, openFrameworks, Max/MSP, p5.js and TouchDesigner. TouchDesigner supports OSC In CHOP, MQTT Client DAT and Serial DAT. See the [coordinate receiver guide](public/examples/coordinates/README.md) for formats, serial topology and pending receiver tests. Web OSC needs the updated bridge. The v0.107 desktop installers include single/two-hand coordinates, recording protection and the title-bar feature selector; the online web version depends on deployment.
 
 ### What it does
 

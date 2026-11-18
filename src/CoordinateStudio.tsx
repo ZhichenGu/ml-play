@@ -119,7 +119,7 @@ export function CoordinateStudio({initial,onBack,onExplain}:{initial:Project;onB
     const sample=new CoordinateSampler(project.mode,draft).step(Array.from({length:project.mode==='hand'?42:project.mode==='face'?478:33},()=>({x:.5,y:.5,z:0})),0);
     if(sample.frame)void send(sample.frame,draft);else setNotice('请先为要输出的手选择检测点。');
   };
-  return <main className={'object-studio coordinate-workspace'+(project.mode==='hand'?' mobile-hand-coordinates':'')}>
+  return <main className="object-studio coordinate-workspace mobile-hand-coordinates">
     <div className="object-toolbar">
       <button className="toolbar-back" aria-label={t('工作空间')} onClick={async()=>{stop();await queue.current;onBack();}}><ArrowLeft size={19}/></button>
       <h1>{project.name}</h1><button className="toolbar-rename" aria-label={t('重命名')} onClick={()=>setRenaming(true)}><Pencil size={15}/></button>
@@ -129,14 +129,14 @@ export function CoordinateStudio({initial,onBack,onExplain}:{initial:Project;onB
     </div>
     {(notice||camera.error)&&<p className="object-notice" role="alert">{messageT(notice||camera.error)}<button className="icon-button" aria-label={t('关闭提示')} onClick={()=>{setNotice('');camera.clearError();}}><X size={14}/></button></p>}
     <div className="object-grid coordinate-grid">
-      {project.mode==='hand'&&<div className="mobile-coordinate-controls">
+      <div className="mobile-coordinate-controls">
         <button type="button" className="secondary" aria-expanded={mobilePointsOpen} aria-controls="coordinate-point-options" onClick={()=>setMobilePointsOpen(v=>!v)}>
           {t('检测点 · {0}',config.points.length)}<ChevronDown size={15} aria-hidden="true"/>
         </button>
         <button type="button" className="secondary" aria-expanded={mobileValuesOpen} aria-controls="coordinate-readout-table" onClick={()=>setMobileValuesOpen(v=>!v)}>
           {t('坐标详情')}<ChevronDown size={15} aria-hidden="true"/>
         </button>
-      </div>}
+      </div>
       <aside id="coordinate-point-options" className="object-config" data-mobile-open={mobilePointsOpen}><h2>{t('输出检测点')}</h2>
         {project.mode==='hand'&&<>
           {dual&&<><label className="field">{t('参与输出')}<select aria-label={t('参与输出')} value={config.outputHands??'both'} onChange={e=>edit({coordinates:{...config,outputHands:e.target.value as CoordinateHandOutput}})}><option value="any">{t('单手输出')}</option><option value="both">{t('双手输出')}</option></select></label>{config.outputHands==='any'&&<p className="object-help">{t('短暂遮挡先暂停，不会立即换手。')}</p>}</>}
@@ -153,7 +153,7 @@ export function CoordinateStudio({initial,onBack,onExplain}:{initial:Project;onB
         </>}
 
       </aside>
-      <section className="object-camera"><div className="object-camera-title"><h2>{t('实时画面')}</h2><span>{t(camera.state==='on'?'追踪中':camera.state==='opening'?'正在加载模型':'摄像头未开启')}{camera.fallback&&t('· 兼容模式')}</span>{project.mode==='hand'&&camera.state==='on'&&
+      <section className="object-camera"><div className="object-camera-title"><h2>{t('实时画面')}</h2><span>{t(camera.state==='on'?'追踪中':camera.state==='opening'?'正在加载模型':'摄像头未开启')}{camera.fallback&&t('· 兼容模式')}</span>{camera.state==='on'&&
           <button className="text-button mobile-coordinate-close" onClick={camera.stop}>{t('关闭摄像头')}</button>}</div>
         <div className="coordinate-stage" style={{aspectRatio:camera.size.width/camera.size.height,'--coordinate-ratio':camera.size.width/camera.size.height} as React.CSSProperties}>
           <video ref={camera.video} autoPlay muted playsInline/>
@@ -182,11 +182,11 @@ export function CoordinateStudio({initial,onBack,onExplain}:{initial:Project;onB
         <p className="coordinate-output-status">{t('输出状态')} · {t(running&&!values?'等待目标':output)}</p>
       </aside>
     </div>
-    {project.mode==='hand'&&<div className="mobile-hand-dock mobile-coordinate-dock" aria-label={t('动作操作')}>
+    <div className="mobile-hand-dock mobile-coordinate-dock" aria-label={t('动作操作')}>
       {camera.state==='opening'?<button className="secondary" onClick={camera.stop}>{t('取消开启')}</button>:
         camera.state==='off'?<button className="primary" onClick={()=>void camera.start()}>{t('开启摄像头')}</button>:
         <button className="primary" onClick={running?stop:start}>{running?<Square size={15}/>:<Play size={15}/>} {t(running?'停止输出':'开始输出')}</button>}
-    </div>}
+    </div>
     <WorkspaceSettings status={status} sections={[
       {label:'坐标设置',content:<>
         <label className="field">{t('发送频率')}<select value={config.hz} onChange={e=>edit({coordinates:{...config,hz:Number(e.target.value)}})}>{[5,10,15,20,30].map(n=><option value={n} key={n}>{n} Hz</option>)}</select></label>

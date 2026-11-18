@@ -9,7 +9,7 @@ import {MotionComparison} from './MotionComparison';
 import {DeferredHandProject} from './DeferredHandProject';
 import {CoordinateHands,coordinateHandSide} from './coordinate-hands';
 import {HandLearningInput,actionHandKey,actionHandLabel,deferredHandLearning,type HandInputs} from './hand-learning';
-import {fetchHandCameraAssets,HAND_CAMERA_ASSET_REVISION,initializeCameraTask} from './hand-camera-assets';
+import {prepareCameraAssets,initializeCameraTask} from './camera-assets';
 import {CameraPlaceholder} from './CameraPlaceholder';
 import {createCoordinates} from './coordinates';
 import {CoordinateStudio} from './CoordinateStudio';
@@ -330,12 +330,11 @@ function App() {
   async function startCamera() {
     if(camera!=='off'||!project)return;
     const gen=++generation.current;
-    const separateHandLoading=project.mode==='hand'&&matchMedia('(max-width: 600px) and (orientation: portrait) and (pointer: coarse) and (hover: none)').matches;
     const startup=new AbortController();
     cameraStartup.current=startup;
     setCamera('loading');setNotice('');setFallback(false);setCameraStartupError('');
-    if(separateHandLoading)setCameraLoadingText(t('等待摄像头权限'));
-    let assets:Awaited<ReturnType<typeof fetchHandCameraAssets>>|undefined;
+    setCameraLoadingText(t('等待摄像头权限'));
+    let assets:Awaited<ReturnType<typeof prepareCameraAssets>>|undefined;
     try {
       const stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:854},height:{ideal:480},aspectRatio:{ideal:16/9},facingMode:'user'},audio:false});
       if(gen!==generation.current){stream.getTracks().forEach(t=>t.stop());return;}
@@ -343,32 +342,21 @@ function App() {
       stream.getVideoTracks().forEach(track=>{track.onended=()=>{if(gen===generation.current){stopCamera();setNotice('摄像头连接已中断，请检查设备后重新开启。');}};});
       const video=videoRef.current!;
       video.srcObject=stream;
-      if(separateHandLoading){
-        setCameraLoadingText(t('正在等待摄像头画面'));
-        await initializeCameraTask(video.play(),startup.signal,undefined,'摄像头没有开始播放，请关闭其他占用摄像头的应用后重试。');
-      }else await video.play();
+      setCameraLoadingText(t('正在等待摄像头画面'));
+      await initializeCameraTask(video.play(),startup.signal,undefined,'摄像头没有开始播放，请关闭其他占用摄像头的应用后重试。');
       if(gen!==generation.current)return;
       const base=new URL(import.meta.env.BASE_URL,location.href).href;
-      const modelAssetPath=base+'models/'+project.mode+'.task';
-      if(separateHandLoading)setCameraLoadingText(t('正在准备手部检测'));
-      const mp=separateHandLoading?await import('@mediapipe/tasks-vision'):undefined;
-      const useModule=mp?await mp.FilesetResolver.isSimdSupported():false;
-      if(mp){
-        const files=await mp.FilesetResolver.forVisionTasks(base+'wasm',useModule);
-        if(gen!==generation.current)return;
-        const versioned=(url:string)=>url+'?v='+HAND_CAMERA_ASSET_REVISION;
-        assets=await fetchHandCameraAssets({
-          wasmLoaderPath:versioned(files.wasmLoaderPath),wasmBinaryPath:versioned(files.wasmBinaryPath),
-        },versioned(modelAssetPath),startup,bytes=>{
-          if(gen===generation.current)setCameraLoadingText(bytes===0?t('正在下载手部模型'):t('正在下载手部模型 · 已下载 {0} MB',(bytes/1_000_000).toFixed(1)));
-        });
-        if(gen!==generation.current)return;
-        setCameraLoadingText(t('正在初始化手部检测'));
-      }
+      setCameraLoadingText(t('正在准备检测'));
+      const activeAssets=await prepareCameraAssets(project.mode,base,startup,bytes=>{
+        if(gen===generation.current)setCameraLoadingText(bytes===0?t('正在下载检测模型'):t('正在下载检测模型 · 已下载 {0} MB',(bytes/1_000_000).toFixed(1)));
+      });
+      assets=activeAssets;
+      if(gen!==generation.current)return;
+      setCameraLoadingText(t('正在初始化检测'));
       let worker:Worker|null=null;
       try {
         // Classic WASM loaders cannot run in a module worker on some mobile browsers.
-        if(separateHandLoading&&!useModule)throw Error('Classic loader needs the main thread');
+        if(!activeAssets.useModule)throw Error('Classic loader needs the main thread');
         worker=new Worker(new URL('./vision.worker.ts',import.meta.url),{type:'module'});
         workerRef.current=worker;
         const activeWorker=worker;
@@ -380,14 +368,14 @@ function App() {
           };
           activeWorker.postMessage({type:'init',mode:project.mode,base,coordinateHands:project.mode==='hand'&&!!project.handTracking,
             stableHand:project.mode==='hand'&&!project.handTracking,handOptions:{handMode:'dual'},
-            assets:assets?{files:assets.files,modelPath:assets.modelPath}:undefined});
+            assets:{files:activeAssets.files,modelPath:activeAssets.modelPath}});
         }),startup.signal);
       } catch {
         worker?.terminate();if(gen!==generation.current)return;workerRef.current=null;
-        if(separateHandLoading)setCameraLoadingText(t('正在初始化兼容检测'));
-        const mediaPipe=mp??await import('@mediapipe/tasks-vision');
-        let files=assets?.files??await mediaPipe.FilesetResolver.forVisionTasks(base+'wasm');
-        if(assets&&useModule){
+        setCameraLoadingText(t('正在初始化兼容检测'));
+        const mediaPipe=await import('@mediapipe/tasks-vision');
+        let files=activeAssets.files;
+        if(activeAssets.useModule){
           // MediaPipe's main-thread loader inserts a classic script tag. Import an ES module
           // explicitly, then supply the factory that the SDK expects.
           const loader=await initializeCameraTask(import(/* @vite-ignore */ files.wasmLoaderPath),startup.signal);
@@ -396,16 +384,16 @@ function App() {
           files={...files,wasmLoaderPath:''};
         }
         if(gen!==generation.current)return;
-        const opts={baseOptions:{modelAssetPath:assets?.modelPath??modelAssetPath,delegate:'CPU' as const},runningMode:'VIDEO' as const};
+        const opts={baseOptions:{modelAssetPath:activeAssets.modelPath,delegate:'CPU' as const},runningMode:'VIDEO' as const};
         if(project.mode==='hand'){
           const create=mediaPipe.HandLandmarker.createFromOptions(files,{...opts,numHands:2,minHandDetectionConfidence:.6,minHandPresenceConfidence:.6});
-          const d=separateHandLoading?await initializeCameraTask(create,startup.signal,value=>value.close()):await create;
+          const d=await initializeCameraTask(create,startup.signal,value=>value.close());
           if(gen!==generation.current){d.close();return;}
           const hands=new CoordinateHands();
           mainDetector.current={detect:(v,t)=>{const detected=d.detectForVideo(v,t);const points=project.handTracking?hands.step(detected,'any',true,t):hands.step(detected,'any',false,t);return {frame:extract('hand',points,[],t),points,handAmbiguous:!project.handTracking&&hands.ambiguous};},close:()=>d.close()};
         }
-        if(project.mode==='pose'){const d=await mediaPipe.PoseLandmarker.createFromOptions(files,{...opts,numPoses:1});if(gen!==generation.current){d.close();return;}mainDetector.current={detect:(v,t)=>{const points=d.detectForVideo(v,t).landmarks[0]??[];return {frame:extract('pose',points,[],t),points};},close:()=>d.close()};}
-        if(project.mode==='face'){const d=await mediaPipe.FaceLandmarker.createFromOptions(files,{...opts,numFaces:1,outputFaceBlendshapes:true});if(gen!==generation.current){d.close();return;}mainDetector.current={detect:(v,t)=>{const result=d.detectForVideo(v,t);const points=result.faceLandmarks[0]??[];return {frame:extract('face',points,result.faceBlendshapes[0]?.categories.map(c=>c.score)??[],t),points};},close:()=>d.close()};}
+        if(project.mode==='pose'){const d=await initializeCameraTask(mediaPipe.PoseLandmarker.createFromOptions(files,{...opts,numPoses:1}),startup.signal,value=>value.close());if(gen!==generation.current){d.close();return;}mainDetector.current={detect:(v,t)=>{const points=d.detectForVideo(v,t).landmarks[0]??[];return {frame:extract('pose',points,[],t),points};},close:()=>d.close()};}
+        if(project.mode==='face'){const d=await initializeCameraTask(mediaPipe.FaceLandmarker.createFromOptions(files,{...opts,numFaces:1,outputFaceBlendshapes:true}),startup.signal,value=>value.close());if(gen!==generation.current){d.close();return;}mainDetector.current={detect:(v,t)=>{const result=d.detectForVideo(v,t);const points=result.faceLandmarks[0]??[];return {frame:extract('face',points,result.faceBlendshapes[0]?.categories.map(c=>c.score)??[],t),points};},close:()=>d.close()};}
         setFallback(true);
       }
       if(gen!==generation.current){worker?.terminate();return;}
@@ -455,8 +443,7 @@ function App() {
         ?'摄像头权限未开启。请在浏览器的网站设置中允许摄像头，再重试。'
         :'无法开启摄像头或模型：'+(e instanceof Error?e.message:String(e));
       stopCamera();
-      if(separateHandLoading)setCameraStartupError(error);
-      else setNotice(error);
+      setCameraStartupError(error);
     }finally{
       assets?.release();
       if(cameraStartup.current===startup)cameraStartup.current=null;
@@ -579,8 +566,8 @@ function App() {
   const outputPending=(action?.effect==='mqtt'&&(mqttDirty||mqtt.state!=='connected'))||
     (action?.effect==='serial'&&serial.status!=='connected'&&serial.status!=='sending');
   const recordingSettings=project?(<div className="capture-settings training-only"><label className="field compact">{t("录制用途")}<select aria-label={t("录制用途")} value={captureSplit} disabled={inProgress||running} onChange={e=>{const split=e.target.value as 'train'|'test';if(split==='train')chooseRound(undefined);setCaptureSplit(split);}}><option value="train">{t("训练示例")}</option><option value="test">{t("独立测试（不参与训练）")}</option></select></label>{isContinuous&&captureSplit==='test'&&<label className="field compact">{t('本次测试目标值')}{testValueSelect}</label>}<label className="checkbox-label" hidden={isContinuous}><input type="checkbox" checked={negative} disabled={inProgress||running} onChange={e=>setNegative(e.target.checked)}/>{captureSplit==='test'?t("本次不应触发任何动作"):t("录制非目标姿态/动作（负例）")}</label>{(captureSplit==='test'||isContinuous||isPose||negative)&&<p>{captureSplit==='test'?t("测试不会用于训练，结果不发送到外部设备。"):isContinuous?t("保持姿态录制，指定目标数值；换另一种姿态指定另一个数值。"):isPose?t("正例与负例都请保持一种姿态。"):t("负例帮助排除容易混淆的动作。")}</p>}</div>):null;
-  const mobileHandStudio=page==='studio'&&project?.mode==='hand';
-  const mobileHandDynamic=mobileHandStudio&&learningMode(project)==='dynamic';
+  const mobileTrackingStudio=page==='studio'&&project!==null;
+  const mobileHandDynamic=mobileTrackingStudio&&project.mode==='hand'&&learningMode(project)==='dynamic';
   const mobileLearningLabel=isRelation?'动作关系':isRegion?'区域与停留':isContinuous?'连续控制':isPose?'姿态分类':'动态动作';
   const mobileOtherPose=isContinuous&&action?.trained&&!ready?project?.actions.find(a=>a.id!==action.id&&!a.trained):undefined;
   const latestMobileTrigger=logs[0]!==mobileTriggerBaseline.current&&!logs[0]?.manual?logs[0]:undefined;
@@ -590,7 +577,7 @@ function App() {
       if(isContinuous)return continuousValue===null?t('等待有效姿态'):t('实时数值')+' '+continuousValue.toFixed(3);
       if(latestMobileTrigger)return t('已触发：{0}',latestMobileTrigger.name);
       if(isRegion)return messageT(recognitionStatus)+(dwellProgress>0?' · '+Math.round(dwellProgress*100)+'%':'');
-      return !frame?t('等待手部'):messageT(recognitionStatus);
+      return !frame?t(project?.mode==='hand'?'等待手部':'等待目标'):messageT(recognitionStatus);
     }
     if(!action)return t('先添加动作');
     if(isRegion)return t(isRelation?'关系已设置，可以开始运行':'区域已设置，可以开始运行');
@@ -599,9 +586,9 @@ function App() {
     if(isContinuous&&action.trained&&!ready)return t('为另一个不同的数值录制并训练一种可区分的姿态。');
     if(action.trained)return t('训练完成，可以开始运行。');
     if(positive)return t('已保存 {0} 条训练示范',positive);
-    if(!frame)return t('将一只手完整放入画面，再开始录制。');
+    if(!frame)return t(project?.mode==='face'?'让面部完整入镜，再开始录制。':project?.mode==='pose'?'让全身进入画面，再开始录制。':'将一只手完整放入画面，再开始录制。');
     return isContinuous?t('保持「{0}」，录制目标值 {1}。',action.name,action.controlValue??0):
-      t(isPose?'保持一种姿态，例如握拳。':'录下一遍完整动作，例如向右挥手。');
+      t(project?.mode==='face'?(isPose?'保持一种表情。':'录下一遍完整的表情变化。'):project?.mode==='pose'?(isPose?'保持一种身体姿态。':'录下一遍完整的身体动作。'):isPose?'保持一种姿态，例如握拳。':'录下一遍完整动作，例如向右挥手。');
   }
   function startMobileRun(){mobileTriggerBaseline.current=logs[0];startRun();}
   const projectTools=project&&<>
@@ -645,9 +632,9 @@ function App() {
     {page==='coordinates'&&coordinateProject&&<CoordinateStudio initial={coordinateProject} onExplain={()=>setInteractionGuide('coordinates')} onBack={()=>setPage('home')}/>}
     {page==='audio'&&audioProject&&<AudioStudio initial={audioProject} onBack={()=>setPage('home')} onSaved={()=>setAudioProjects(listAudioProjects())}/>}
     {page==='objects'&&objectProject&&<ObjectStudio initial={objectProject} onBack={()=>setPage('home')} onSaved={()=>refreshObjects()}/>}
-    {page==='studio'&&project&&<main style={{'--frame-ratio':camera==='on'?sourceSize.width/sourceSize.height:16/9} as React.CSSProperties} className={"studio hand-control "+(isRegion?"region-studio":"")+(cameraLayout?" camera-layout":"")+(mobileHandStudio?' mobile-hand-studio':'')+(mobileHandDynamic?' mobile-hand-dynamic':'')+(mobileActions?' mobile-actions-open':'')+(mobileDetails?' mobile-details-open':'')}><div className="project-toolbar"><div><button className="toolbar-back" aria-label={t("工作空间")} title={t("工作空间")} onClick={()=>{cancelEvaluation();stopCamera();void serial.disconnect();mqtt.reset();setPage('home');}}><ArrowLeft size={19}/></button><h1 title={project.name}>{project.name}</h1><button className="toolbar-rename" aria-label={t('重命名')} title={t('重命名')} disabled={inProgress||running} onClick={()=>setRenaming({kind:'tracking',id:project.id!,name:project.name})}><Pencil size={15}/></button><span className="tag">{t(MODES[project.mode].name)}</span>{project.handTracking&&<span className="tag">{t(project.handTracking==='single'?'单手':project.handTracking==='dual'?'双手':'混合')}</span>}<span className="tag learning-badge">{isRegion?t(isRelation?"动作关系":"区域与停留"):isContinuous?t('连续控制'):isPose?t("姿态分类"):t("动态动作")}</span>{learningMode(project)!=='dynamic'&&<button type="button" className="text-button interaction-explain" disabled={inProgress||running} onClick={()=>setInteractionGuide(learningMode(project) as HandDemoKind)}>{t('动画示意')}</button>}{!isRegion&&!isContinuous&&!isPose&&<FeatureChoices inline recommended={project.recommendedFeature} hand={project.mode==='hand'} value={project.feature} disabled={inProgress||running} onChange={chooseFeature} onExplain={()=>setFeatureGuide(true)}/>}</div>{isRegion?<div className="workflow" aria-label={t('规则设置流程')}><span className="done-step"><b>1</b><span className="step-label">{t('选择检测点')}</span></span><i/><span className={running?'done-step':'active-step'}><b>2</b><span className="step-label">{t(isRelation?'设置关系':'设置区域')}</span></span><i/><span className={running?'active-step':''}><b>3</b><span className="step-label">{t('运行交互')}</span></span></div>:<div className="workflow"><span className="done-step"><b>1</b><span className="step-label">{t("选择输入")}</span></span><i/><span className={positive?'done-step':'active-step'}><b>2</b><span className="step-label">{t("录制示例")}</span></span><i/><span className={action?.trained?'done-step':positive?'active-step':''}><b>3</b><span className="step-label">{t("训练动作")}</span></span><i/><span className={running?'active-step':''}><b>4</b><span className="step-label">{t("运行交互")}</span></span></div>}<div className="toolbar-actions"><span className="save-state"><Check size={13}/>{messageT(saved)}</span>{projectTools}</div></div>
+    {page==='studio'&&project&&<main style={{'--frame-ratio':camera==='on'?sourceSize.width/sourceSize.height:16/9} as React.CSSProperties} className={"studio hand-control "+(isRegion?"region-studio":"")+(cameraLayout?" camera-layout":"")+(mobileTrackingStudio?' mobile-hand-studio':'')+(mobileHandDynamic?' mobile-hand-dynamic':'')+(mobileActions?' mobile-actions-open':'')+(mobileDetails?' mobile-details-open':'')}><div className="project-toolbar"><div><button className="toolbar-back" aria-label={t("工作空间")} title={t("工作空间")} onClick={()=>{cancelEvaluation();stopCamera();void serial.disconnect();mqtt.reset();setPage('home');}}><ArrowLeft size={19}/></button><h1 title={project.name}>{project.name}</h1><button className="toolbar-rename" aria-label={t('重命名')} title={t('重命名')} disabled={inProgress||running} onClick={()=>setRenaming({kind:'tracking',id:project.id!,name:project.name})}><Pencil size={15}/></button><span className="tag">{t(MODES[project.mode].name)}</span>{project.handTracking&&<span className="tag">{t(project.handTracking==='single'?'单手':project.handTracking==='dual'?'双手':'混合')}</span>}<span className="tag learning-badge">{isRegion?t(isRelation?"动作关系":"区域与停留"):isContinuous?t('连续控制'):isPose?t("姿态分类"):t("动态动作")}</span>{learningMode(project)!=='dynamic'&&<button type="button" className="text-button interaction-explain" disabled={inProgress||running} onClick={()=>setInteractionGuide(learningMode(project) as HandDemoKind)}>{t('动画示意')}</button>}{!isRegion&&!isContinuous&&!isPose&&<FeatureChoices inline recommended={project.recommendedFeature} hand={project.mode==='hand'} value={project.feature} disabled={inProgress||running} onChange={chooseFeature} onExplain={()=>setFeatureGuide(true)}/>}</div>{isRegion?<div className="workflow" aria-label={t('规则设置流程')}><span className="done-step"><b>1</b><span className="step-label">{t('选择检测点')}</span></span><i/><span className={running?'done-step':'active-step'}><b>2</b><span className="step-label">{t(isRelation?'设置关系':'设置区域')}</span></span><i/><span className={running?'active-step':''}><b>3</b><span className="step-label">{t('运行交互')}</span></span></div>:<div className="workflow"><span className="done-step"><b>1</b><span className="step-label">{t("选择输入")}</span></span><i/><span className={positive?'done-step':'active-step'}><b>2</b><span className="step-label">{t("录制示例")}</span></span><i/><span className={action?.trained?'done-step':positive?'active-step':''}><b>3</b><span className="step-label">{t("训练动作")}</span></span><i/><span className={running?'active-step':''}><b>4</b><span className="step-label">{t("运行交互")}</span></span></div>}<div className="toolbar-actions"><span className="save-state"><Check size={13}/>{messageT(saved)}</span>{projectTools}</div></div>
 
-            {mobileHandStudio&&<div className="mobile-action-row">
+            {mobileTrackingStudio&&<div className="mobile-action-row">
         <button type="button" className="secondary" aria-controls="tracking-actions" aria-expanded={mobileActions} disabled={inProgress} onClick={()=>setMobileActions(v=>!v)}>
             <span>{t(isRegion?mobileLearningLabel:isContinuous?'当前目标':'当前动作')}</span><strong>{action?.name??t('添加动作')}</strong>
             {isContinuous&&action&&<span>{(action.controlValue??0).toFixed(2)}</span>}<ChevronRight size={16}/>
@@ -656,13 +643,13 @@ function App() {
       </div>}
       <div className="workspace"><aside className="actions-panel" id="tracking-actions"><div className="panel-title"><h2>{t(isContinuous?"目标姿态":"我的动作")}</h2><span>{project.actions.length.toString().padStart(2,'0')}</span></div><div className="action-list">{!project.actions.length&&<p className="no-actions">{t("暂无动作，请点击“添加动作”。")}</p>}{project.actions.map((a,i)=><ActionItem key={a.id} action={a} index={i} selected={selected===a.id} rule={isRegion}  disabled={inProgress||(isContinuous&&running)} renameDisabled={running} controlValue={isContinuous?a.controlValue??0:undefined} onSelect={()=>{setMobileActions(false);setSelected(a.id);if(project.handTracking){setFrame(null);smooth.current=null;}}} onRename={name=>update(p=>({...p,actions:p.actions.map(item=>item.id===a.id?{...item,name}:item)}))}/>)}</div><button hidden={isRegion&&project.actions.length>0} className="add-action" disabled={inProgress||project.actions.length>=12} onClick={()=>{stopRun();const a={...makeAction(project.actions.length,project.actions.map(a=>a.name)),...(project.handTracking?{handCount:project.handTracking==='dual'?2 as const:1 as const,hand:'any' as const}:{})};update(p=>({...p,actions:[...p.actions,a]}));setSelected(a.id);setMobileActions(false);if(project.handTracking)setFrame(null);}}><Plus size={16}/>{t('添加动作')}</button>{project.handTracking&&action&&<div className="hand-action-scope"><label className="field">{t('使用哪只手')}<select aria-label={t('动作使用哪只手')} value={action.hand??'any'} disabled={inProgress||running||!!action.samples.length} onChange={e=>{stopRun();handInput.current.reset();controlHand.current=undefined;setFrame(null);editAction(a=>({...a,hand:e.target.value as 'any'|'left'|'right'}));}}><option value="any">{t('任意一只')}</option><option value="left">{t('仅左手')}</option><option value="right">{t('仅右手')}</option></select></label>{!!action.samples.length&&<small>{t('已有示范的手别已保留。')}</small>}</div>}{!isRegion&&action&&<div className="hand-target-edit">{isContinuous&&targetSetting}<button className="icon-button" aria-label={t("删除动作 {0}",action.name)} disabled={inProgress||running} onClick={()=>requestDelete({kind:'action',name:action.name,id:action.id})}><Trash2 size={15}/></button></div>}<div className="input-mode"><Camera size={17}/><span>{t("摄像头输入")}<small>{t("单人 · 本机处理")}</small></span></div></aside>
       <section className="center-panel"><div className="camera-heading"><div><h2>{t("实时画面")}</h2><span className={'camera-state '+(camera==='on'&&(project.handTracking?visibleHands>0:isRegion?ruleTargetVisible:!!frame)?'is-on':'')}><span/>{camera==='loading'?(cameraLoadingText||t("正在加载模型")):camera==='on'?project.handTracking?t(visibleHands===2?'双手已检测':visibleHands===1?'单手已检测':'等待手部'):(isRegion?ruleTargetVisible:!!frame)?t("追踪中"):!isRegion&&project.mode==='pose'&&previewPoints.length?t("身体已检测 · 全身不完整"):t("模型已就绪 · 等待目标"):t("摄像头未开启")}</span></div>{camera==='on'&&<div className="camera-tools">{project.mode==='face'&&<button className="text-button" aria-pressed={denseFace} onClick={()=>setDenseFace(v=>!v)}>{t(denseFace?'简洁点位':'密集点位（高级）')}</button>}<button className="text-button" aria-pressed={pinnedPreview} onClick={()=>setPinnedPreview(v=>!v)}>{t(pinnedPreview?'自动小预览':'小预览')}</button><button className="text-button" onClick={stopCamera}><Square size={13}/>{t("关闭摄像头")}</button></div>}</div>{learningMode(project)==='dynamic'&&action&&<MotionComparison key={project.id+':'+action.id} action={action} mode={project.mode} feature={project.feature} frame={frame} camera={camera==='on'} stage={stageRef} sourceSize={sourceSize} focus={project.focus} handPath={project.handPath} recording={recording||countdown!==null} onOpenChange={setComparisonOpen}/>}<div className="tracking-camera-stage"><div className="camera-view" ref={stageRef}><div className="camera-content" style={{inset:0}}><video ref={videoRef} autoPlay playsInline muted onLoadedMetadata={e=>{const v=e.currentTarget;setSourceSize({width:v.videoWidth||640,height:v.videoHeight||480});}}/>{camera==='on'&&<canvas ref={trackedImage} aria-hidden="true" style={{position:'absolute',inset:0,width:'100%',height:'100%',transform:'scaleX(-1)'}}/>}{(!comparisonOpen||project.feature==='path')&&<Skeleton points={previewPoints} mode={project.mode} hidePoints={project.mode==='hand'&&camera==='on'&&!comparisonOpen} focus={isRegion?(isRelation?(project.relation?.points??defaultRelationPoints(project.mode)):[project.region?.point??(project.mode==='face'?1:0)]):(project.focus??recommendedPoints(project.mode))}/>}{camera==='on'&&!comparisonOpen&&<PointPicker dense={denseFace} compact={cameraLayout} pair={isRelation} points={project.handTracking?(frame?.points.slice(0,21)??[]):previewPoints} mode={project.mode} selected={!isRegion?(project.focus??recommendedPoints(project.mode)):isRelation?(project.relation?.points??defaultRelationPoints(project.mode)):(project.region?.point!==undefined?[project.region.point]:project.mode==='pose'?[]:[project.mode==='hand'?0:1])} region={!isRegion||isRelation?undefined:project.region??DEFAULT_REGION} onSelect={choosePoint}/>}{isRegion&&!isRelation&&<div className="dwell-region" style={{left:(project.region??DEFAULT_REGION).x*100+'%',top:(project.region??DEFAULT_REGION).y*100+'%',width:(project.region??DEFAULT_REGION).width*100+'%',height:(project.region??DEFAULT_REGION).height*100+'%'}}/>}</div>{camera!=='on'&&<CameraPlaceholder loading={camera==='loading'} status={cameraLoadingText} error={cameraStartupError} hint={project.handTracking&&actionHandKey(project,action??project.actions[0])==='dual'?'将双手完整放入画面，保持手指清晰可见。':MODES[project.mode].hint} onStart={()=>void startCamera()}/>}{camera==='on'&&<><div className="camera-hud"><span><span className="live-dot"/>LIVE</span><span>{ms}{t("ms / 检测")}{fallback?t("· 兼容模式"):''}</span></div>{!isRegion&&!comparisonOpen&&!running&&!inProgress&&<div className="camera-point-hint">{t("点击画面中的点可添加或移除")}</div>}{!isRegion&&<CameraRecordingKeys recording={recording} preparing={countdown!==null} disabled={running||evaluating||!frame||!action||action.samples.length>=MAX_SAMPLES_PER_ACTION} onStart={startRecording} onSave={()=>finishRecording(true)} onCancel={cancelRecording}/>}<div className="camera-hint">{isRegion&&!previewPoints.length?t(project.mode==='hand'?'未检测到手部，请将手完整放入画面。':project.mode==='face'?'未检测到面部，请正对摄像头。':'未检测到身体，请进入画面。'):!isRegion&&project.focus?t('请让关注点及必要的参考点清晰可见。'):isRegion?t(isRelation?'选择 A 或 B，再点击画面中的骨骼点。':'点击骨骼点选择检测位置；红点进入区域后开始计时。'):project.mode==='pose'&&previewPoints.length&&!frame?t("已检测到身体。请让肩、髋、手腕、膝盖和脚踝清晰入镜后再录制。"):t(project.handTracking&&action&&actionHandKey(project,action)==='dual'?'将双手完整放入画面，保持手指清晰可见。':MODES[project.mode].hint)}</div></>}{countdown!==null&&<div className="countdown">{countdown}<small>{t("准备好你的动作")}</small></div>}{recording&&<div className="recording-banner"><span className="rec-dot"/>{t("正在录制")}{negative?t("负例"):t("示例")}<span>{(recordProgress*duration).toFixed(2)} / {duration.toFixed(2)} s</span><div style={{width:recordProgress*100+'%'}}/></div>}</div>
-        {mobileHandStudio&&camera==='on'&&<div className="mobile-camera-metrics">
+        {mobileTrackingStudio&&camera==='on'&&<div className="mobile-camera-metrics">
           <span><i className="live-dot"/>LIVE</span>
           <span>{ms}{t("ms / 检测")}</span>
           {fallback&&<span>{t("兼容模式")}</span>}
         </div>}
       </div>
-      {mobileHandStudio&&<div className="mobile-hand-summary">
+      {mobileTrackingStudio&&<div className="mobile-hand-summary">
         <p role={running&&isContinuous?undefined:"status"} hidden={camera==='loading'} className={running&&!isContinuous&&latestMobileTrigger?'is-triggered':''}>{mobileStep()}</p>
         <button className="text-button mobile-details-toggle" type="button" disabled={inProgress}
           aria-expanded={mobileDetails} aria-controls={isRegion?'tracking-rule-feedback':'tracking-workspace-tabs'} onClick={()=>setMobileDetails(v=>!v)}>
@@ -707,9 +694,9 @@ function App() {
  {testRound&&!isContinuous&&<p role="status">{t('第 {0} 轮 · 目标动作 {1} 条 · 日常动作 {2} 条',testRound,roundSamples.filter(s=>!s.negative).length,roundSamples.filter(s=>s.negative).length)}</p>}
  </section><EvaluationPanel project={project} valueReport={valueReport} testRound={testRound} locked={recording||countdown!==null||running} onReplay={(actionId,sampleId)=>setTestReplay(project.actions.find(a=>a.id===actionId)?.samples.find(s=>s.id===sampleId&&s.split==='test')??null)} report={report} busy={evaluating} progress={evaluationProgress} total={roundSamples.length} ready={!!ready} onRun={runEvaluation} onCancel={cancelEvaluation} onExport={exportEvaluation}/></>}</>}</section>
       </div>
-      {mobileHandStudio&&mobileDetails&&<div className="mobile-hand-project-tools">{projectTools}</div>}
+      {mobileTrackingStudio&&mobileDetails&&<div className="mobile-hand-project-tools">{projectTools}</div>}
       {cameraLayout&&camera==='on'&&<FloatingPreview image={trackedImage} avoidSettings pinned={pinnedPreview} mode={project.mode} video={videoRef} stage={stageRef} points={previewPoints} sourceSize={sourceSize} status={isContinuous?(running?(continuousValue===null?t("等待有效姿态"):continuousValue.toFixed(3)):t("未运行")):signal?.id===action?.id?t(signal?.result==='failed'?"发送失败":signal?.result==='sent'?"已提交输出":"动作已触发"):running?(isRegion?messageT(recognitionStatus):isPose&&poseLabelId===action?.id?t("姿态已确认"):isPose?t("等待姿态"):t("等待完整动作")):t("未运行")} signal={isContinuous?(running&&continuousValue!==null?'matched':'idle'):signal?.id===action?.id?(signal?.result==='failed'?'failed':'matched'):running&&isPose&&poseLabelId===action?.id?'matched':running?'waiting':'idle'}/>}
-      {mobileHandStudio&&<div className="mobile-hand-dock" aria-label={t('动作操作')}>
+      {mobileTrackingStudio&&<div className="mobile-hand-dock" aria-label={t('动作操作')}>
         {running?<button className="primary" onClick={stopRun}><Square size={16}/>{t('停止运行')}</button>:
           inProgress?<><button className="secondary" disabled={!recording&&countdown===null} onClick={cancelRecording}>{t('取消')}</button>
             <button className="primary" disabled={!recording} onClick={()=>finishRecording(true)}>{t('保存示范')}</button></>:

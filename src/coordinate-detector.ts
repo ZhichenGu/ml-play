@@ -1,12 +1,12 @@
 import {CoordinateHands,type CoordinateHandOptions} from './coordinate-hands';
-import {initializeCameraTask,type HandCameraAssets} from './hand-camera-assets';
+import {initializeCameraTask,type CameraAssets} from './camera-assets';
 import type {Mode,Point} from './core';
 
 type Detector={detect:(video:HTMLVideoElement,t:number,options?:CoordinateHandOptions)=>Promise<Point[]>;close:()=>void;fallback:boolean};
 
 // Match the learning workspace: module Workers are preferred, but some browsers
 // cannot run MediaPipe's WASM loader there. Keep the same camera stream on fallback.
-export async function createCoordinateDetector(mode:Mode,base:string,signal:AbortSignal,handOptions?:CoordinateHandOptions,assets?:HandCameraAssets&{useModule:boolean}):Promise<Detector> {
+export async function createCoordinateDetector(mode:Mode,base:string,signal:AbortSignal,handOptions?:CoordinateHandOptions,assets?:CameraAssets&{useModule:boolean}):Promise<Detector> {
   let worker:Worker|undefined;
   let closed=false;
   let pending:((points:Point[])=>void)|undefined;
@@ -68,14 +68,14 @@ export async function createCoordinateDetector(mode:Mode,base:string,signal:Abor
     let detect:(video:HTMLVideoElement,t:number)=>Point[];
     if(mode==='hand'){
       const create=mp.HandLandmarker.createFromOptions(files,{...opts,numHands:2,minHandDetectionConfidence:.6,minHandPresenceConfidence:.6});
-      const d=assets?await initializeCameraTask(create,signal,value=>value.close()):await create;
+      const d=await initializeCameraTask(create,signal,value=>value.close());
       const hands=new CoordinateHands();
       closeMain=()=>d.close();detect=(video,t)=>hands.step(d.detectForVideo(video,t),currentHandOptions?.hand,currentHandOptions?.handMode==='dual',t);
     }else if(mode==='face'){
-      const d=await mp.FaceLandmarker.createFromOptions(files,{...opts,numFaces:1,outputFaceBlendshapes:true});
+      const d=await initializeCameraTask(mp.FaceLandmarker.createFromOptions(files,{...opts,numFaces:1,outputFaceBlendshapes:true}),signal,value=>value.close());
       closeMain=()=>d.close();detect=(video,t)=>d.detectForVideo(video,t).faceLandmarks[0]??[];
     }else{
-      const d=await mp.PoseLandmarker.createFromOptions(files,{...opts,numPoses:1});
+      const d=await initializeCameraTask(mp.PoseLandmarker.createFromOptions(files,{...opts,numPoses:1}),signal,value=>value.close());
       closeMain=()=>d.close();detect=(video,t)=>d.detectForVideo(video,t).landmarks[0]??[];
     }
     check();

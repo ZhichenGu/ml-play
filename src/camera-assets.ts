@@ -1,15 +1,18 @@
-// Bump with changes to the hand model or its WASM runtime, independently of UI releases.
-export const HAND_CAMERA_ASSET_REVISION='0.109';
-const assetCacheName='platform-hand-camera-'+HAND_CAMERA_ASSET_REVISION;
+import type {Mode} from './core';
+
+// Bump when the model files or WASM runtime change, independently of UI releases.
+const CAMERA_ASSET_REVISION='0.109';
+// Keep the existing cache name so previously downloaded hand assets are reusable.
+const assetCacheName='platform-hand-camera-'+CAMERA_ASSET_REVISION;
 const memoryAssets=new Map<string,Blob>();
 
-export type HandCameraAssets = {
+export type CameraAssets = {
   files: {wasmLoaderPath:string;wasmBinaryPath:string};
   modelPath:string;
 };
 
-export async function fetchHandCameraAssets(
-  files:HandCameraAssets['files'], modelPath:string, controller:AbortController,
+async function fetchCameraAssets(
+  files:CameraAssets['files'], modelPath:string, controller:AbortController,
   onDownload:(bytes:number)=>void,
 ) {
   const {signal}=controller;
@@ -21,11 +24,11 @@ export async function fetchHandCameraAssets(
   async function downloadOnce(url:string,index:number) {
     if(!downloading){downloading=true;onDownload(0);}
     loaded[index]=0;
-    const stalled=()=>controller.abort(new Error('手部模型下载停滞，请检查网络后重试。'));
+    const stalled=()=>controller.abort(new Error('检测模型下载停滞，请检查网络后重试。'));
     let timer=setTimeout(stalled,30000);
     try {
       const response=await fetch(url,{signal,cache:'force-cache'});
-      if(!response.ok||!response.body)throw Error('手部模型文件下载失败，请刷新页面后重试。');
+      if(!response.ok||!response.body)throw Error('检测模型文件下载失败，请刷新页面后重试。');
       const reader=response.body.getReader();
       const chunks:Uint8Array<ArrayBuffer>[]=[];
       for(;;) {
@@ -37,7 +40,7 @@ export async function fetchHandCameraAssets(
         const now=performance.now();
         if(now-lastReport>160){lastReport=now;onDownload(loaded[0]+loaded[1]+loaded[2]);}
       }
-      if(!loaded[index])throw Error('手部模型文件下载失败，请刷新页面后重试。');
+      if(!loaded[index])throw Error('检测模型文件下载失败，请刷新页面后重试。');
       return new Blob(chunks,{type:index===0?'application/wasm':index===2?'text/javascript':'application/octet-stream'});
     } finally {clearTimeout(timer);}
   }
@@ -51,7 +54,7 @@ export async function fetchHandCameraAssets(
       catch(retryError){
         signal.throwIfAborted();
         if(!(retryError instanceof TypeError))throw retryError;
-        throw Error('手部模型文件下载失败，请刷新页面后重试。');
+        throw Error('检测模型文件下载失败，请刷新页面后重试。');
       }
     }
   }
@@ -80,9 +83,21 @@ export async function fetchHandCameraAssets(
   };
 }
 
+export async function prepareCameraAssets(mode:Mode,base:string,controller:AbortController,onDownload:(bytes:number)=>void) {
+  const {FilesetResolver}=await import('@mediapipe/tasks-vision');
+  const useModule=await FilesetResolver.isSimdSupported();
+  const files=await FilesetResolver.forVisionTasks(base+'wasm',useModule);
+  controller.signal.throwIfAborted();
+  const versioned=(url:string)=>url+'?v='+CAMERA_ASSET_REVISION;
+  const assets=await fetchCameraAssets({
+    wasmLoaderPath:versioned(files.wasmLoaderPath),wasmBinaryPath:versioned(files.wasmBinaryPath),
+  },versioned(base+'models/'+mode+'.task'),controller,onDownload);
+  return {...assets,useModule};
+}
+
 export async function initializeCameraTask<T>(
   task:Promise<T>,signal:AbortSignal,dispose?:(value:T)=>void,
-  timeoutMessage='手部检测器初始化超时，请重试。',
+  timeoutMessage='检测器初始化超时，请重试。',
 ):Promise<T> {
   let expired=false;
   let cancel:()=>void=()=>{};

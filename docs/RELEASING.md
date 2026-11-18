@@ -2,6 +2,12 @@
 
 README 回答“今天能用哪个版本”；一个 GitHub Release 对应一个版本，记录“这一版改了什么、该下载哪个文件、实际在哪跑过”。网页版可以单独发版，不必等桌面版。按用户授权选择正式发布或预发布；发布标签不能替代各平台验收。未验证的平台附件明确标为测试包，不能宣称兼容性通过。推送、发布及可能的自动部署须在授权范围内完成。
 
+## 0.118 网页预览候选 · 2026-11-18
+
+- 本机预览 [127.0.0.1:5198](http://127.0.0.1:5198/) 提供三种追踪的手机与桌面模型缓存，以及手机竖屏的追踪、视觉和声音工作台。在线正式网页为 [0.114](https://ml-play.onrender.com/)。
+- 桌面附件沿用 [v0.107.0](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0) 的 Apple Silicon DMG、Windows x64 测试包和校验文件。
+- 检查范围与待验事项见[当前交互与验收](当前交互与验收.md)。此处记录预览候选，发布后需另行核对 Render 实际版本。
+
 ## v0.107.0 桌面发布验收 · 2026-11-16
 
 - 候选包位于 `desktop/out/release-0.107.0/`：`Platform-0.107.0-macOS-arm64.dmg`、`Platform-0.107.0-Windows-x64-Setup.exe`、`SHA256SUMS.txt`。已发布至 [v0.107.0](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0)，标记为 Latest；公开 Assets 中两个安装包的 GitHub SHA256 均与本地校验文件一致。

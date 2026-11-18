@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import type {CoordinateHandOptions} from './coordinate-hands';
 import type {Mode,Point} from './core';
-import {fetchHandCameraAssets,HAND_CAMERA_ASSET_REVISION,initializeCameraTask} from './hand-camera-assets';
+import {prepareCameraAssets,initializeCameraTask} from './camera-assets';
 import {t,messageT} from './i18n';
 import {createCoordinateDetector} from './coordinate-detector';
 
@@ -32,9 +32,8 @@ export function useLandmarkCamera(mode:Mode,onPoints:(points:Point[])=>void,hand
     stop();setError('');setState('opening');
     const generation=epoch.current;
     let phase:'camera'|'model'='camera';
-    const mobileHand=mode==='hand'&&matchMedia('(max-width: 600px) and (orientation: portrait) and (pointer: coarse) and (hover: none)').matches;
-    let preloaded:Awaited<ReturnType<typeof fetchHandCameraAssets>>|undefined;
-    if(mobileHand)setStartupStatus(t('等待摄像头权限'));
+    let preloaded:Awaited<ReturnType<typeof prepareCameraAssets>>|undefined;
+    setStartupStatus(t('等待摄像头权限'));
     try {
       const media=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},aspectRatio:{ideal:16/9},facingMode:'user'},audio:false});
       if(generation!==epoch.current){media.getTracks().forEach(track=>track.stop());return;}
@@ -43,30 +42,19 @@ export function useLandmarkCamera(mode:Mode,onPoints:(points:Point[])=>void,hand
       const abort=new AbortController();controller.current=abort;
       const element=video.current!;
       element.srcObject=media;
-      if(mobileHand){
-        setStartupStatus(t('正在等待摄像头画面'));
-        await initializeCameraTask(element.play(),abort.signal,undefined,'摄像头没有开始播放，请关闭其他占用摄像头的应用后重试。');
-      }else await element.play();
+      setStartupStatus(t('正在等待摄像头画面'));
+      await initializeCameraTask(element.play(),abort.signal,undefined,'摄像头没有开始播放，请关闭其他占用摄像头的应用后重试。');
       if(generation!==epoch.current)return;
       setSize({width:element.videoWidth||1280,height:element.videoHeight||720});
       phase='model';
       const base=new URL(import.meta.env.BASE_URL,location.href).href;
-      let useModule=false;
-      if(mobileHand){
-        setStartupStatus(t('正在准备手部检测'));
-        const {FilesetResolver}=await import('@mediapipe/tasks-vision');
-        useModule=await FilesetResolver.isSimdSupported();
-        const files=await FilesetResolver.forVisionTasks(base+'wasm',useModule);
-        abort.signal.throwIfAborted();
-        const versioned=(url:string)=>url+'?v='+HAND_CAMERA_ASSET_REVISION;
-        preloaded=await fetchHandCameraAssets({wasmLoaderPath:versioned(files.wasmLoaderPath),wasmBinaryPath:versioned(files.wasmBinaryPath)},versioned(base+'models/hand.task'),abort,bytes=>{
-          if(generation===epoch.current)setStartupStatus(bytes===0?t('正在下载手部模型'):t('正在下载手部模型 · 已下载 {0} MB',(bytes/1_000_000).toFixed(1)));
-        });
-        abort.signal.throwIfAborted();
-        setStartupStatus(t('正在初始化手部检测'));
-      }
-      const active=await createCoordinateDetector(mode,base,abort.signal,handOptions,
-        preloaded?{files:preloaded.files,modelPath:preloaded.modelPath,useModule}:undefined);
+      setStartupStatus(t('正在准备检测'));
+      preloaded=await prepareCameraAssets(mode,base,abort,bytes=>{
+        if(generation===epoch.current)setStartupStatus(bytes===0?t('正在下载检测模型'):t('正在下载检测模型 · 已下载 {0} MB',(bytes/1_000_000).toFixed(1)));
+      });
+      abort.signal.throwIfAborted();
+      setStartupStatus(t('正在初始化检测'));
+      const active=await createCoordinateDetector(mode,base,abort.signal,handOptions,preloaded);
       if(generation!==epoch.current){active.close();return;}
       detector.current=active;setFallback(active.fallback);setState('on');
       async function tick(now:number) {
@@ -95,7 +83,7 @@ export function useLandmarkCamera(mode:Mode,onPoints:(points:Point[])=>void,hand
     } catch(e) {
       if(generation===epoch.current){
         stop();
-        setError(mobileHand&&e instanceof Error?messageT(e.message):phase==='model'?'检测模型加载失败，请重新开启摄像头。':'无法开启摄像头，请检查设备与权限。');
+        setError(phase==='model'&&e instanceof Error?messageT(e.message):'无法开启摄像头，请检查设备与权限。');
       }
     }finally{preloaded?.release();}
   }
