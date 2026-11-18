@@ -14,7 +14,7 @@
 | macOS | [下载 Apple Silicon 0.107（DMG）](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-macOS-arm64.dmg)。打开后将 Platform 拖入「应用程序」。已在 macOS 15.7.5 测试，尚未经过 Apple 公证。 |
 | Windows | [下载 Intel/AMD 64 位测试版（EXE）](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-Windows-x64-Setup.exe)。安装包未签名，Windows 10 和 11 的真机安装与设备权限待测。 |
 
-[查看 v0.107.0 发布说明和校验文件](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0)。网页源码为 0.113。手机竖屏首页、新建页和手部追踪工作台使用紧凑布局。桌面安装包为 0.107，线上网页版本以实际部署为准。Windows 安装包供测试，尚未完成 Win10/Win11 真机验收。
+[查看 v0.107.0 发布说明和校验文件](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0)。网页源码为 0.114。手机手部追踪首次加载后会缓存模型，重开摄像头或页面时优先复用。手机竖屏首页、新建页和手部追踪工作台使用紧凑布局。桌面安装包为 0.107，线上网页版本以实际部署为准。Windows 安装包供测试，尚未完成 Win10/Win11 真机验收。
 
 
 ### 示意动画与动作对照（0.107）
@@ -114,7 +114,7 @@ A small tool inspired by Wekinator, built for interactive experiments with a cam
 | macOS | [Download for Apple Silicon (DMG, 0.107)](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-macOS-arm64.dmg). Open it and drag Platform into Applications. Tested on macOS 15.7.5. This build has not been notarized by Apple. |
 | Windows | [Download the Intel/AMD x64 preview (EXE)](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-Windows-x64-Setup.exe). The installer is unsigned. Installation and device access on Windows 10 and 11 are awaiting real-device tests. |
 
-[Read the v0.107.0 release notes and find the checksums](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0). The web source is version 0.113. On phones in portrait orientation, the home page, project creation, and hand-tracking workspace use compact layouts. Desktop installers are version 0.107. The live website version depends on deployment. The Windows installer is for testing and still awaits Windows 10/11 real-device validation.
+[Read the v0.107.0 release notes and find the checksums](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0). The web source is version 0.114. Hand tracking on phones caches the model after the first load and reuses it when the camera or page is reopened. On phones in portrait orientation, the home page, project creation, and hand-tracking workspace use compact layouts. Desktop installers are version 0.107. The live website version depends on deployment. The Windows installer is for testing and still awaits Windows 10/11 real-device validation.
 
 
 ### Illustrated guides and motion comparison (0.107)

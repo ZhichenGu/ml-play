@@ -59,9 +59,8 @@ export function useLandmarkCamera(mode:Mode,onPoints:(points:Point[])=>void,hand
         const files=await FilesetResolver.forVisionTasks(base+'wasm',useModule);
         abort.signal.throwIfAborted();
         const versioned=(url:string)=>url+'?v='+HAND_CAMERA_ASSET_REVISION;
-        setStartupStatus(t('正在下载手部模型'));
         preloaded=await fetchHandCameraAssets({wasmLoaderPath:versioned(files.wasmLoaderPath),wasmBinaryPath:versioned(files.wasmBinaryPath)},versioned(base+'models/hand.task'),abort,bytes=>{
-          if(generation===epoch.current)setStartupStatus(t('正在下载手部模型 · 已下载 {0} MB',(bytes/1_000_000).toFixed(1)));
+          if(generation===epoch.current)setStartupStatus(bytes===0?t('正在下载手部模型'):t('正在下载手部模型 · 已下载 {0} MB',(bytes/1_000_000).toFixed(1)));
         });
         abort.signal.throwIfAborted();
         setStartupStatus(t('正在初始化手部检测'));

@@ -1,5 +1,7 @@
 // Bump with changes to the hand model or its WASM runtime, independently of UI releases.
 export const HAND_CAMERA_ASSET_REVISION='0.109';
+const assetCacheName='platform-hand-camera-'+HAND_CAMERA_ASSET_REVISION;
+const memoryAssets=new Map<string,Blob>();
 
 export type HandCameraAssets = {
   files: {wasmLoaderPath:string;wasmBinaryPath:string};
@@ -8,12 +10,16 @@ export type HandCameraAssets = {
 
 export async function fetchHandCameraAssets(
   files:HandCameraAssets['files'], modelPath:string, controller:AbortController,
-  onProgress:(bytes:number)=>void,
+  onDownload:(bytes:number)=>void,
 ) {
   const {signal}=controller;
   const loaded=[0,0,0];
   let lastReport=0;
+  let downloading=false;
+  const cache=await globalThis.caches?.open(assetCacheName).catch(()=>undefined);
+  signal.throwIfAborted();
   async function downloadOnce(url:string,index:number) {
+    if(!downloading){downloading=true;onDownload(0);}
     loaded[index]=0;
     const stalled=()=>controller.abort(new Error('手部模型下载停滞，请检查网络后重试。'));
     let timer=setTimeout(stalled,30000);
@@ -29,7 +35,7 @@ export async function fetchHandCameraAssets(
         const chunk=new Uint8Array(value);
         chunks.push(chunk);loaded[index]+=chunk.byteLength;
         const now=performance.now();
-        if(now-lastReport>160){lastReport=now;onProgress(loaded[0]+loaded[1]+loaded[2]);}
+        if(now-lastReport>160){lastReport=now;onDownload(loaded[0]+loaded[1]+loaded[2]);}
       }
       if(!loaded[index])throw Error('手部模型文件下载失败，请刷新页面后重试。');
       return new Blob(chunks,{type:index===0?'application/wasm':index===2?'text/javascript':'application/octet-stream'});
@@ -49,8 +55,22 @@ export async function fetchHandCameraAssets(
       }
     }
   }
-  const loader=await download(files.wasmLoaderPath,2);
-  const [wasm,model]=await Promise.all([download(files.wasmBinaryPath,0),download(modelPath,1)]);
+  async function load(url:string,index:number):Promise<Blob> {
+    const inMemory=memoryAssets.get(url);
+    if(inMemory)return inMemory;
+
+    const stored=await cache?.match(url).then(response=>response?.blob()).catch(()=>undefined);
+    signal.throwIfAborted();
+    if(stored?.size){memoryAssets.set(url,stored);return stored;}
+
+    const blob=await download(url,index);
+    signal.throwIfAborted();
+    memoryAssets.set(url,blob);
+    await cache?.put(url,new Response(blob,{headers:{'Content-Type':blob.type}})).catch(()=>{});
+    return blob;
+  }
+  const loader=await load(files.wasmLoaderPath,2);
+  const [wasm,model]=await Promise.all([load(files.wasmBinaryPath,0),load(modelPath,1)]);
   signal.throwIfAborted();
   const wasmURL=URL.createObjectURL(wasm),modelURL=URL.createObjectURL(model),loaderURL=URL.createObjectURL(loader);
   return {

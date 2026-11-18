@@ -6,11 +6,11 @@
 
 | 对象 | 当前记录 |
 | --- | --- |
-| 本地正式源码 | `/Users/zhichengu/Documents/GitHub/Wekinator_fork`，网页 0.113 / package 0.113.0 |
-| 预览副本 | `/Users/zhichengu/Documents/Codex/2026-11-11/platform-autosave-preview`，0.113；预览另含内置 API 实验，正式源码仅合入手机界面和配套摄像头加载 |
-| 本机入口 | 预览 `http://localhost:5184/`；正式目录合回检查 `http://localhost:5185/`，服务可能随进程结束，使用前确认 |
+| 本地正式源码 | `/Users/zhichengu/Documents/GitHub/Wekinator_fork`，网页 0.114 / package 0.114.0 |
+| 预览副本 | `/Users/zhichengu/Documents/Codex/2026-11-11/platform-autosave-preview`，0.114；预览另含内置 API 实验，正式源码仅合入手机界面和配套摄像头加载 |
+| 本机入口 | 缓存修复预览 `http://127.0.0.1:5198/`；正式目录合回检查 `http://localhost:5185/`，服务可能随进程结束，使用前确认 |
 | GitHub | https://github.com/ZhichenGu/ml-play，网页通过 main 发布；实际部署以 Render 为准 |
-| 线上 | https://ml-play.onrender.com/ ，最近有记录的线上核验为 0.97；本轮未查询部署，不推断仍是或已是哪个版本 |
+| 线上 | https://ml-play.onrender.com/ ，0.113 已通过访客入口核对；0.114 上线状态以部署验收为准 |
 | 桌面发布 | [GitHub v0.107.0](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0)，Mac arm64 DMG、Windows x64 测试包、SHA256SUMS。Mac 从最终包复制至独立临时目录启动并重开验证，未替换 /Applications 旧版；Windows 真机待验 |
 
 网页、桌面和本机不同端口不是同一项目库。换聊天沿用代码目录，无需复制仓库或迁移浏览器数据。不得把“已合回”当作“已部署/已打包”。
@@ -39,6 +39,8 @@ Platform 用相机/麦克风制作交互，结果输出状态灯、Serial、MQTT
 保留原始录制、训练/测试/负例用途、稳定 ID、旧协议和隐式参考。双手/混合动作学习暂缓，旧实验项目只保留/导出。改变特征/关注点须使训练失效，不擅自改旧项目或全局调阈值。完整约束见 AGENTS。
 
 ## 验证与下一步
+
+0.114 手机网页修复：手部检测模型和 WASM 按资源版本写入浏览器缓存。Chrome 在普通 HTTP 缓存关闭时验证首次加载三个文件、同页重开摄像头和关页重开同一项目均不发出模型请求。缓存启动后可录制、训练并触发；手机实机待验。
 
 0.113 网页候选：桌面 Chrome 同源从 0.107 打开旧项目，检查正例、负例、独立测试原始帧、训练状态和阈值，改名保存再重开通过。1280×840 和 600×840 桌面保留原工作台。手机竖屏 390×650 和 320×568 使用实际 MediaPipe 模型与模拟视频走通动态录制、训练、触发。其余五种手部模式用合成检测数据验证。构建和 274 项测试通过。正式源码的登录、API 和桌面打包文件与基线一致。
 
