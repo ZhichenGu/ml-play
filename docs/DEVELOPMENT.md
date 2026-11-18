@@ -48,7 +48,18 @@ React 18.3 + TS/Vite、Lucide、普通 CSS；MediaPipe Tasks Vision 0.10.35。Wo
 
 运行环境变量：`HOST`、`PORT`、`SESSION_SECRET`、`AUTH_COOKIE_SECURE`。线上 `HOST=0.0.0.0`，HTTPS 使用 `AUTH_COOKIE_SECURE=true`；本地HTTP不可直接沿用Secure Cookie。`APP_PASSWORD` 不再是生产账号来源，代码的显式password模式用于旧测试。
 
-0.123 网页可用 `PLATFORM_PASSWORD_ACCOUNT` 指向 `config/users.json` 中已启用的站点账号。密码使用该记录的哈希验证，账号可用 `npm run users` 管理。未设置时保留账号和密码入口。内置视觉 DeepSeek 的凭证在部署环境变量 `PLATFORM_DEEPSEEK_API_KEY` 中配置，浏览器仅收到可用状态。访客使用自己的 Key。内置视觉检测要求用户同意发送及使用平台额度。
+### 网页单密码与内置 DeepSeek
+
+0.125 网页候选使用下列部署配置。账号密码通过 `npm run users` 在交互式终端管理，`config/users.json` 保存密码哈希。正式账号使用单独设置的密码。本机演示密码和模拟凭证不随代码发布。
+
+| 配置 | 回退与作用 |
+| --- | --- |
+| `PLATFORM_PASSWORD_ACCOUNT` | 填现有站点账号名，账号须启用。留空保留原账号和密码表单；指向不存在的账号时服务拒绝启动。 |
+| `PLATFORM_DEEPSEEK_API_KEY` | 存放实际视觉 DeepSeek 凭证，留空时不显示内置 API。访客使用自己的 Key；密码会话调用内置检测仍需同意发送与使用平台额度。 |
+| `HOST` 和 `PORT` | 托管服务监听 `0.0.0.0` 和 Render 提供的端口。本机默认绑定回环地址。 |
+| `SESSION_SECRET` 和 `AUTH_COOKIE_SECURE` | 托管配置稳定的会话签名密钥，HTTPS 设 `AUTH_COOKIE_SECURE=true`。更换签名密钥会使现有会话失效；本机 HTTP 用默认设置。 |
+
+发布前的本机检查使用真实启动命令和模拟凭证。Render 的实际变量、真实 Key 权限和供应商额度须在部署环境单独核对。
 
 ## 目录与关键入口
 | 文件/目录 | 职责 |

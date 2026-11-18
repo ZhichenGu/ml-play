@@ -14,16 +14,18 @@
 | macOS | [下载 Apple Silicon 0.107（DMG）](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-macOS-arm64.dmg)。打开后将 Platform 拖入「应用程序」。已在 macOS 15.7.5 测试，尚未经过 Apple 公证。 |
 | Windows | [下载 Intel/AMD 64 位测试版（EXE）](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-Windows-x64-Setup.exe)。安装包未签名，Windows 10 和 11 的真机安装与设备权限待测。 |
 
-[查看 v0.107.0 发布说明和校验文件](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0)。正式网页为 0.114，桌面安装包为 0.107。Windows 安装包供测试，尚未完成 Win10/Win11 真机验收。
+[查看 v0.107.0 发布说明和校验文件](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0)。当前候选为 0.125，正式网页最近核验为 0.118，桌面安装包为 0.107。Windows 安装包供测试，尚未完成 Win10/Win11 真机验收。
 
 
-### 0.118 本机网页预览
+### 0.125 网页发布候选
 
-在运行预览服务的 Mac 上打开 [0.118 预览](http://127.0.0.1:5198/)。手机竖屏的首页按类别列出项目。手部、面部和身体追踪把当前步骤放在固定底栏，视觉可展开「目标与 API」，声音把录音与音量操作放在底栏。桌面浏览器使用原工作台布局。设置和详细记录可按需展开。
+本机验收地址为 [0.125 候选](http://localhost:5201/)，此服务使用模拟 DeepSeek。启用站点单密码和内置视觉 DeepSeek 的方式见 [部署配置](docs/DEVELOPMENT.md#网页单密码与内置-deepseek)。
+
+手机竖屏的首页按类别列出项目。手部、面部和身体追踪把当前步骤放在固定底栏，视觉可展开「目标与 API」，声音把录音与音量操作放在底栏。桌面浏览器使用原工作台布局。设置和详细记录可按需展开。
 
 手机与电脑的手部、面部和身体追踪共用浏览器模型缓存。首次使用某个追踪类型需加载该类型的模型；模型及共用运行文件仍在缓存中时，重开摄像头或关页后重开可直接初始化检测。预览和正式站的项目分开保存，可用导出与导入在两者之间迁移。
 
-正式网站为 **0.114**，已上线手机手部模型缓存。桌面安装包为 **0.107**。预览的实际验证与待验事项见 [当前交互与验收](docs/当前交互与验收.md)。
+正式网站与桌面安装包使用各自的发布版本。候选版的验证与待验事项见 [当前交互与验收](docs/当前交互与验收.md)。
 
 ### 示意动画与动作对照（0.107）
 
@@ -122,16 +124,18 @@ A small tool inspired by Wekinator, built for interactive experiments with a cam
 | macOS | [Download for Apple Silicon (DMG, 0.107)](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-macOS-arm64.dmg). Open it and drag Platform into Applications. Tested on macOS 15.7.5. This build has not been notarized by Apple. |
 | Windows | [Download the Intel/AMD x64 preview (EXE)](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-Windows-x64-Setup.exe). The installer is unsigned. Installation and device access on Windows 10 and 11 are awaiting real-device tests. |
 
-[Read the v0.107.0 release notes and find the checksums](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0). The live website is version 0.114. Desktop installers are version 0.107. The Windows installer is for testing and still awaits Windows 10/11 real-device validation.
+[Read the v0.107.0 release notes and find the checksums](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0). The web release candidate is 0.125. The last verified live website is 0.118, and desktop installers are version 0.107. The Windows installer is for testing and still awaits Windows 10/11 real-device validation.
 
 
-### Local web preview 0.118
+### Web release candidate 0.125
 
-Open the [0.118 preview](http://127.0.0.1:5198/) on the Mac running the preview server. The portrait phone layout groups projects by category. Hand, face, and body tracking keep the current action in a fixed bottom bar. Vision has an expandable **Target and API** panel, and audio keeps recording and volume controls in the bottom bar. Desktop browsers retain the existing workspace layout. Settings and detailed results can be opened as needed.
+Open the [0.125 local candidate](http://localhost:5201/) on the Mac running the test server. This service uses a mock DeepSeek provider. For the password entry and built-in DeepSeek setup, see the [deployment configuration](docs/DEVELOPMENT.md#网页单密码与内置-deepseek).
+
+The portrait phone layout groups projects by category. Hand, face, and body tracking keep the current action in a fixed bottom bar. Vision has an expandable **Target and API** panel, and audio keeps recording and volume controls in the bottom bar. Desktop browsers retain the existing workspace layout. Settings and detailed results can be opened as needed.
 
 Hand, face, and body tracking share a browser cache on phones and computers. The first use of a tracking type loads its model. When the model and shared runtime files are still cached, reopening the camera or page skips the download and initializes the detector. The preview and the live site store projects separately. Export and import projects to move them between sites.
 
-The live website is **0.114**, with model caching for hand tracking in the phone layout. Desktop installers are **0.107**. See the [verification record](docs/当前交互与验收.md) for the preview checks and outstanding tests.
+The website and desktop installers have separate release versions. See the [verification record](docs/当前交互与验收.md) for the preview checks and outstanding tests.
 
 ### Illustrated guides and motion comparison (0.107)
 
