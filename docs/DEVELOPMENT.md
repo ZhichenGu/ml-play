@@ -50,11 +50,12 @@ React 18.3 + TS/Vite、Lucide、普通 CSS；MediaPipe Tasks Vision 0.10.35。Wo
 
 ### 网页单密码与内置 DeepSeek
 
-0.125 网页候选使用下列部署配置。账号密码通过 `npm run users` 在交互式终端管理，`config/users.json` 保存密码哈希。正式账号使用单独设置的密码。本机演示密码和模拟凭证不随代码发布。
+账号密码通过 `npm run users` 在交互式终端管理，`config/users.json` 保存密码哈希。从 0.126 起，可以直接在 Render 的服务 **Environment** 设置正式站专用四位数，并选择 **Save and deploy** 使配置生效。
 
 | 配置 | 回退与作用 |
 | --- | --- |
-| `PLATFORM_PASSWORD_ACCOUNT` | 填现有站点账号名，账号须启用。留空保留原账号和密码表单；指向不存在的账号时服务拒绝启动。 |
+| `PLATFORM_PASSWORD_ACCOUNT` | 指定一个已启用的账号。设置四位数时，若只有一个账号启用，则可省略此项。两项都留空时，继续显示原账号和密码表单。 |
+| `PLATFORM_ACCESS_PIN` | 仅保存在 Render 的环境变量中，填四位数字，保留开头的零。设置后，单密码入口使用此值。留空时，如指定了账号，单密码入口继续使用该账号的密码。更换此值会让原密码登录会话失效。 |
 | `PLATFORM_DEEPSEEK_API_KEY` | 存放实际视觉 DeepSeek 凭证，留空时不显示内置 API。访客使用自己的 Key；密码会话调用内置检测仍需同意发送与使用平台额度。 |
 | `HOST` 和 `PORT` | 托管服务监听 `0.0.0.0` 和 Render 提供的端口。本机默认绑定回环地址。 |
 | `SESSION_SECRET` 和 `AUTH_COOKIE_SECURE` | 托管配置稳定的会话签名密钥，HTTPS 设 `AUTH_COOKIE_SECURE=true`。更换签名密钥会使现有会话失效；本机 HTTP 用默认设置。 |
