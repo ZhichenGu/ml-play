@@ -6,11 +6,11 @@
 
 | 对象 | 当前记录 |
 | --- | --- |
-| 本地正式源码 | `/Users/zhichengu/Documents/GitHub/Wekinator_fork`，网页候选 0.123 / package 0.123.0 |
+| 本地正式源码 | `/Users/zhichengu/Documents/GitHub/Wekinator_fork`，网页候选 0.124 / package 0.124.0 |
 | 预览副本 | `/Users/zhichengu/Documents/Codex/2026-11-11/platform-autosave-preview`，0.122；模拟 DeepSeek 和单密码入口原型 |
-| 本机入口 | 入口预览 `http://localhost:5199/`；0.123 正式候选（模拟 DeepSeek）`http://localhost:5201/`，服务可能随进程结束，使用前确认 |
+| 本机入口 | 入口预览 `http://localhost:5199/`；0.124 正式候选（模拟 DeepSeek）`http://localhost:5201/`，服务可能随进程结束，使用前确认 |
 | GitHub | https://github.com/ZhichenGu/ml-play，网页通过 main 发布；实际部署以 Render 为准 |
-| 线上 | https://ml-play.onrender.com/ ，2026-11-18 通过访客入口核对 0.118（`0fcb65b`）；0.123 等待用户上传 |
+| 线上 | https://ml-play.onrender.com/ ，2026-11-18 通过访客入口核对 0.118（`0fcb65b`）；0.124 等待用户上传 |
 | 桌面发布 | [GitHub v0.107.0](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0)，Mac arm64 DMG、Windows x64 测试包、SHA256SUMS。Mac 从最终包复制至独立临时目录启动并重开验证，未替换 /Applications 旧版；Windows 真机待验 |
 
 网页、桌面和本机不同端口不是同一项目库。换聊天沿用代码目录，无需复制仓库或迁移浏览器数据。不得把“已合回”当作“已部署/已打包”。
@@ -39,6 +39,8 @@ Platform 用相机/麦克风制作交互，结果输出状态灯、Serial、MQTT
 保留原始录制、训练/测试/负例用途、稳定 ID、旧协议和隐式参考。双手/混合动作学习暂缓，旧实验项目只保留/导出。改变特征/关注点须使训练失效，不擅自改旧项目或全局调阈值。完整约束见 AGENTS。
 
 ## 验证与下一步
+
+0.124 候选降低访问页主按钮的蓝色明度与饱和度，密码与访客入口间距 22 像素。Chrome 320×568 与 1280×840 的中英文、居中及双入口复测通过。
 
 0.123 候选整理到本地 `codex/web-0.123`。启用单密码入口和内置视觉 DeepSeek 需要部署端配置 `PLATFORM_PASSWORD_ACCOUNT` 与 `PLATFORM_DEEPSEEK_API_KEY`。访客只能用自备 Key。模拟服务、中英文主路径和限流通过验收；不改讯飞、OpenAI 或桌面安装包。
 
