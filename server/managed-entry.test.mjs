@@ -7,7 +7,8 @@ import {setAccount} from './users.mjs';
 test('single-password and guest entries preserve separate DeepSeek credentials',async t=>{
   const accountName='entry-account';
   const {users}=await setAccount({version:1,users:[]},accountName,'test-entry-password');
-  const gate=createAccessGate({users,passwordAccount:accountName,builtInDeepSeek:true,secret:'test-entry-session'});
+  const entryPin='0042';
+  const gate=createAccessGate({users,passwordAccount:'',entryPin,builtInDeepSeek:true,secret:'test-entry-session'});
   const requestedKeys=[];
   const request=globalThis.fetch;
   t.mock.method(globalThis,'fetch',async (target,options)=>{
@@ -28,6 +29,8 @@ test('single-password and guest entries preserve separate DeepSeek credentials',
     const html=await page.text();
     assert.equal((html.match(/<input\b/g)??[]).length,1);
     assert.doesNotMatch(html,/name="username"/);
+    assert.match(html,/inputmode="numeric" maxlength="4"/);
+    assert.ok(!html.includes(entryPin));
     assert.ok(html.indexOf(login)>=0&&html.indexOf(guest)>html.indexOf(login));
     const error=await request(base+'/auth/login?lang='+language,{method:'POST',body:'password=wrong',redirect:'manual'});
     assert.equal(error.status,401);
@@ -38,8 +41,14 @@ test('single-password and guest entries preserve separate DeepSeek credentials',
     assert.equal(response.status,303);
     return response.headers.get('set-cookie').split(';')[0];
   }
-  const signedIn=await signIn('/auth/login','password=test-entry-password');
+  const oldLogin=await request(base+'/auth/login',{method:'POST',body:'password=test-entry-password',redirect:'manual'});
+  assert.equal(oldLogin.status,401);
+  const signedIn=await signIn('/auth/login','password='+entryPin);
   const guest=await signIn('/auth/guest','');
+  const rotated=createAccessGate({users,passwordAccount:accountName,entryPin:'0043',secret:'test-entry-session'});
+  assert.equal(rotated.isAuthorized({headers:{cookie:signedIn}}),false);
+  assert.equal(rotated.isAuthorized({headers:{cookie:guest}}),true);
+  assert.throws(()=>createAccessGate({users,passwordAccount:accountName,entryPin:'42'}),/PLATFORM_ACCESS_PIN/);
   for(const [cookie,deepseek] of [[signedIn,true],[guest,false]]){
     const response=await request(base+'/api/managed-providers',{headers:{cookie}});
     assert.deepEqual(await response.json(),{deepseek});
@@ -61,7 +70,7 @@ test('single-password and guest entries preserve separate DeepSeek credentials',
     const wrong=await request(base+'/auth/login?lang=en',{method:'POST',body:'password=wrong',redirect:'manual'});
     assert.equal(wrong.status,401);
   }
-  const limited=await request(base+'/auth/login?lang=en',{method:'POST',body:'password=test-entry-password',redirect:'manual'});
+  const limited=await request(base+'/auth/login?lang=en',{method:'POST',body:'password='+entryPin,redirect:'manual'});
   assert.equal(limited.status,429);
   assert.match(await limited.text(),/Too many sign-in attempts/);
   await signIn('/auth/guest','');

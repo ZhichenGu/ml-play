@@ -7,7 +7,7 @@ const COOKIE='motion_access';
 const SESSION_MS=12*60*60*1000;
 function equal(a,b){const left=createHash('sha256').update(a).digest(),right=createHash('sha256').update(b).digest();return timingSafeEqual(left,right);}
 const platformIcon='data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20x%3D%221%22%20y%3D%221%22%20width%3D%2230%22%20height%3D%2230%22%20rx%3D%227%22%20fill%3D%22white%22%20stroke%3D%22%23d6dce4%22%2F%3E%3Cg%20transform%3D%22translate%284%204%29%22%20fill%3D%22none%22%20stroke%3D%22%23292929%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M22%2012h-2.48a2%202%200%200%200-1.93%201.46l-2.35%208.36a.25.25%200%200%201-.48%200L9.24%202.18a.25.25%200%200%200-.48%200l-2.35%208.36A2%202%200%200%201%204.49%2012H2%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E';
-function loginPage(message='',language='zh',accounts=true,passwordOnly=false,builtInDeepSeek=false){
+function loginPage(message='',language='zh',accounts=true,passwordOnly=false,builtInDeepSeek=false,hasEntryPin=false){
   const t=text=>language==='en'?(en[text]??text):text;
   const showUsername=accounts&&!passwordOnly;
   const passwordLabel=t('访问密码');
@@ -51,20 +51,38 @@ button:hover{background:#b8cce1}
 ${message?`<p class="error" role="alert">${t(message)}</p>`:''}
 <form method="post" action="/auth/login?lang=${language}">
 ${showUsername?`<label for="username">${t('账号')}</label><input id="username" name="username" autocomplete="username" maxlength="48" required autofocus><label for="password">${passwordLabel}</label>`:''}
-<input id="password" name="password" type="password" autocomplete="current-password" aria-label="${passwordLabel}" placeholder="${t('请输入访问密码')}" maxlength="256" required ${accounts?'':'autofocus'}>
+<input id="password" name="password" type="password" autocomplete="current-password" aria-label="${passwordLabel}" placeholder="${t('请输入访问密码')}" ${hasEntryPin?'inputmode="numeric" maxlength="4"':'maxlength="256"'} required ${accounts?'':'autofocus'}>
 <button type="submit">${loginLabel}</button></form>
 ${accounts?`<form class="guest" method="post" action="/auth/guest"><button type="submit">${guestLabel}</button></form>`:''}
 </main></div></body></html>`;
 }
-export function createAccessGate({password,users,usersFile,passwordAccount=process.env.PLATFORM_PASSWORD_ACCOUNT?.trim(),builtInDeepSeek=!!process.env.PLATFORM_DEEPSEEK_API_KEY?.trim(),secret=process.env.SESSION_SECRET??randomBytes(32).toString('hex'),secureCookie=process.env.AUTH_COOKIE_SECURE==='true'}={}){
+export function createAccessGate({password,users,usersFile,passwordAccount=process.env.PLATFORM_PASSWORD_ACCOUNT?.trim(),entryPin=process.env.PLATFORM_ACCESS_PIN,builtInDeepSeek=!!process.env.PLATFORM_DEEPSEEK_API_KEY?.trim(),secret=process.env.SESSION_SECRET??randomBytes(32).toString('hex'),secureCookie=process.env.AUTH_COOKIE_SECURE==='true'}={}){
   if(!secret||password==='')throw new Error('访问配置和会话签名密钥不能为空。');
   // Explicit password mode exists for isolated legacy tests only. Production always loads the account file.
   const accounts=password===undefined;
   const records=accounts?(users?parseUsers({version:1,users}):loadUsers(usersFile)):[];
   const byName=new Map(records.map(u=>[u.username,u]));
+  const hasEntryPin=accounts&&!!entryPin;
+  if(hasEntryPin&&!passwordAccount){
+    const active=records.filter(user=>user.enabled);
+    if(active.length===1)passwordAccount=active[0].username;
+  }
   if(accounts&&passwordAccount&&!byName.has(passwordAccount))throw new Error('单密码入口指向的站点账号不存在。');
   const passwordOnly=accounts&&!!passwordAccount;
-  const revision=name=>accounts?(name===''?'guest':byName.get(name)?.enabled?accountRevision(byName.get(name)):null):createHash('sha256').update(password).digest('hex');
+  if(hasEntryPin&&(!/^\d{4}$/.test(entryPin)||!byName.get(passwordAccount)?.enabled)){
+    throw new Error('PLATFORM_ACCESS_PIN 必须为四位数字，且单密码入口需要绑定一个已启用的账号。');
+  }
+  function revision(name){
+    if(!accounts)return createHash('sha256').update(password).digest('hex');
+    if(name==='')return 'guest';
+    const user=byName.get(name);
+    if(!user?.enabled)return null;
+    const account=accountRevision(user);
+    if(hasEntryPin&&name===passwordAccount){
+      return createHmac('sha256',secret).update(`platform-entry-pin:${account}:${entryPin}`).digest('hex');
+    }
+    return account;
+  }
   const dummy='scrypt-v1$'+'0'.repeat(32)+'$'+'0'.repeat(128);
   const attempts=new Map();const revoked=new Map();
   const token=req=>(req.headers.cookie??'').split(';').map(s=>s.trim()).find(s=>s.startsWith(COOKIE+'='))?.slice(COOKIE.length+1)??'';
@@ -77,7 +95,7 @@ export function createAccessGate({password,users,usersFile,passwordAccount=proce
     let name;try{name=Buffer.from(encoded??'','base64url').toString('utf8');}catch{return false;}
     return !revoked.has(value)&&!extra.length&&/^\d+$/.test(expiry??'')&&/^[a-f0-9]{32}$/.test(nonce??'')&&Number(expiry)>Date.now()&&Number(expiry)<=Date.now()+SESSION_MS&&rev===revision(name)&&typeof signature==='string'&&equal(signature,sign(`${expiry}.${encoded}.${rev}.${nonce}`));
   }
-  function html(res,status,message='',language='zh'){res.writeHead(status,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','Set-Cookie':`ui_lang=${language}; Path=/; SameSite=Strict; Max-Age=31536000`});res.end(loginPage(message,language,accounts,passwordOnly,builtInDeepSeek));}
+  function html(res,status,message='',language='zh'){res.writeHead(status,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','Set-Cookie':`ui_lang=${language}; Path=/; SameSite=Strict; Max-Age=31536000`});res.end(loginPage(message,language,accounts,passwordOnly,builtInDeepSeek,hasEntryPin));}
   function redirect(res,value){res.writeHead(303,{'Location':'/','Set-Cookie':value,'Cache-Control':'no-store'});res.end();}
   const accessGate=async function(req,res,next){
     const url=new URL(req.url??'/','http://localhost');const path=url.pathname;
@@ -100,7 +118,10 @@ export function createAccessGate({password,users,usersFile,passwordAccount=proce
       const form=new URLSearchParams(body),value=form.get('password')??'',name=accounts?(passwordOnly?passwordAccount:(form.get('username')??'').trim()):'';
       entry.count++;attempts.set(key,entry);if(attempts.size>1000)for(const [ip,a] of attempts)if(now-a.start>300000)attempts.delete(ip);
       const user=byName.get(name);
-      const correct=accounts?await verifyPassword(value,user?.passwordHash??dummy):value.length<=256&&equal(value,password);
+      let correct;
+      if(hasEntryPin)correct=equal(value,entryPin);
+      else if(accounts)correct=await verifyPassword(value,user?.passwordHash??dummy);
+      else correct=value.length<=256&&equal(value,password);
       if(!correct||(accounts&&!user?.enabled)){page(401,accounts&&!passwordOnly?'账号或密码不正确。':'密码不正确。');return;}
       attempts.delete(key);const payload=`${now+SESSION_MS}.${Buffer.from(name).toString('base64url')}.${revision(name)}.${randomBytes(16).toString('hex')}`;redirect(res,cookie(`${payload}.${sign(payload)}`));return;
     }

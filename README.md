@@ -14,12 +14,12 @@
 | macOS | [下载 Apple Silicon 0.107（DMG）](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-macOS-arm64.dmg)。打开后将 Platform 拖入「应用程序」。已在 macOS 15.7.5 测试，尚未经过 Apple 公证。 |
 | Windows | [下载 Intel/AMD 64 位测试版（EXE）](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-Windows-x64-Setup.exe)。安装包未签名，Windows 10 和 11 的真机安装与设备权限待测。 |
 
-[查看 v0.107.0 发布说明和校验文件](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0)。当前候选为 0.125，正式网页最近核验为 0.118，桌面安装包为 0.107。Windows 安装包供测试，尚未完成 Win10/Win11 真机验收。
+[查看 v0.107.0 发布说明和校验文件](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0)。此仓库网页版源码为 0.126，桌面安装包为 0.107。Windows 安装包供测试，尚未完成 Win10/Win11 真机验收。
 
 
-### 0.125 网页发布候选
+### 0.126 网页访问配置
 
-本机验收地址为 [0.125 候选](http://localhost:5201/)，此服务使用模拟 DeepSeek。启用站点单密码和内置视觉 DeepSeek 的方式见 [部署配置](docs/DEVELOPMENT.md#网页单密码与内置-deepseek)。
+正式站专用四位数密码和内置 DeepSeek Key 可在 Render 分别设置。访客可直接进入，使用 API 时需提供自己的 Key。配置步骤见 [部署配置](docs/DEVELOPMENT.md#网页单密码与内置-deepseek)。
 
 手机竖屏的首页按类别列出项目。手部、面部和身体追踪把当前步骤放在固定底栏，视觉可展开「目标与 API」，声音把录音与音量操作放在底栏。桌面浏览器使用原工作台布局。设置和详细记录可按需展开。
 
@@ -124,12 +124,12 @@ A small tool inspired by Wekinator, built for interactive experiments with a cam
 | macOS | [Download for Apple Silicon (DMG, 0.107)](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-macOS-arm64.dmg). Open it and drag Platform into Applications. Tested on macOS 15.7.5. This build has not been notarized by Apple. |
 | Windows | [Download the Intel/AMD x64 preview (EXE)](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-Windows-x64-Setup.exe). The installer is unsigned. Installation and device access on Windows 10 and 11 are awaiting real-device tests. |
 
-[Read the v0.107.0 release notes and find the checksums](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0). The web release candidate is 0.125. The last verified live website is 0.118, and desktop installers are version 0.107. The Windows installer is for testing and still awaits Windows 10/11 real-device validation.
+[Read the v0.107.0 release notes and find the checksums](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0). This repository contains web version 0.126. The desktop installers are version 0.107. The Windows installer is for testing and still awaits Windows 10/11 real-device validation.
 
 
-### Web release candidate 0.125
+### Web access configuration in 0.126
 
-Open the [0.125 local candidate](http://localhost:5201/) on the Mac running the test server. This service uses a mock DeepSeek provider. For the password entry and built-in DeepSeek setup, see the [deployment configuration](docs/DEVELOPMENT.md#网页单密码与内置-deepseek).
+Set the site's four-digit access code and built-in DeepSeek key separately in Render. Guests can enter directly and supply their own key to use the API. See [deployment configuration](docs/DEVELOPMENT.md#网页单密码与内置-deepseek).
 
 The portrait phone layout groups projects by category. Hand, face, and body tracking keep the current action in a fixed bottom bar. Vision has an expandable **Target and API** panel, and audio keeps recording and volume controls in the bottom bar. Desktop browsers retain the existing workspace layout. Settings and detailed results can be opened as needed.
 
