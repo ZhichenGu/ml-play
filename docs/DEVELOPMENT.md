@@ -48,6 +48,8 @@ React 18.3 + TS/Vite、Lucide、普通 CSS；MediaPipe Tasks Vision 0.10.35。Wo
 
 运行环境变量：`HOST`、`PORT`、`SESSION_SECRET`、`AUTH_COOKIE_SECURE`。线上 `HOST=0.0.0.0`，HTTPS 使用 `AUTH_COOKIE_SECURE=true`；本地HTTP不可直接沿用Secure Cookie。`APP_PASSWORD` 不再是生产账号来源，代码的显式password模式用于旧测试。
 
+0.123 网页可用 `PLATFORM_PASSWORD_ACCOUNT` 指向 `config/users.json` 中已启用的站点账号。密码使用该记录的哈希验证，账号可用 `npm run users` 管理。未设置时保留账号和密码入口。内置视觉 DeepSeek 的凭证在部署环境变量 `PLATFORM_DEEPSEEK_API_KEY` 中配置，浏览器仅收到可用状态。访客使用自己的 Key。内置视觉检测要求用户同意发送及使用平台额度。
+
 ## 目录与关键入口
 | 文件/目录 | 职责 |
 | --- | --- |

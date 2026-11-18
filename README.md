@@ -10,7 +10,7 @@
 
 | 版本 | 入口与状态 |
 | --- | --- |
-| 网页版 | **[打开 Platform](https://ml-play.onrender.com/)**。无需安装，点击「访客进入」即可开始，右上角可切换中英文。 |
+| 网页版 | **[打开 Platform](https://ml-play.onrender.com/)**。无需安装，点击「访客进入」即可开始，可切换中英文。启用单密码入口与内置 DeepSeek 的部署可用密码登录，访客使用自己的 API Key。 |
 | macOS | [下载 Apple Silicon 0.107（DMG）](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-macOS-arm64.dmg)。打开后将 Platform 拖入「应用程序」。已在 macOS 15.7.5 测试，尚未经过 Apple 公证。 |
 | Windows | [下载 Intel/AMD 64 位测试版（EXE）](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-Windows-x64-Setup.exe)。安装包未签名，Windows 10 和 11 的真机安装与设备权限待测。 |
 
@@ -118,7 +118,7 @@ A small tool inspired by Wekinator, built for interactive experiments with a cam
 
 | Edition | Availability |
 | --- | --- |
-| Web | **[Open Platform](https://ml-play.onrender.com/)** and choose **Continue as guest**. No installation required. Switch languages in the top-right corner. |
+| Web | **[Open Platform](https://ml-play.onrender.com/)** and choose **Continue as guest**. No installation required. Switch languages in the top-right corner. Deployments with password access and built-in DeepSeek enabled offer a password sign-in. Guests use their own API keys. |
 | macOS | [Download for Apple Silicon (DMG, 0.107)](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-macOS-arm64.dmg). Open it and drag Platform into Applications. Tested on macOS 15.7.5. This build has not been notarized by Apple. |
 | Windows | [Download the Intel/AMD x64 preview (EXE)](https://github.com/ZhichenGu/ml-play/releases/download/v0.107.0/Platform-0.107.0-Windows-x64-Setup.exe). The installer is unsigned. Installation and device access on Windows 10 and 11 are awaiting real-device tests. |
 

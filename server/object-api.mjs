@@ -35,7 +35,7 @@ function outputText(body,provider){
  if(body.status!=='completed'||body.output?.some(o=>o.content?.some(c=>c.type==='refusal')))throw new Error('API 未完成识别，本次不输出。');
  return body.output?.filter(o=>o.type==='message').flatMap(o=>o.content??[]).filter(c=>c.type==='output_text').map(c=>c.text).join('');
 }
-export function createObjectApi({fetchImpl=fetch,timeoutMs=30000}={}){
+export function createObjectApi({fetchImpl=fetch,timeoutMs=30000,account=()=>'',managed}={}){
  const sessions=new Map();
  return async function(req,res,next){
   const path=new URL(req.url??'/','http://local').pathname;if(!['/api/objects/check','/api/objects/detect'].includes(path)){next();return;}
@@ -44,7 +44,8 @@ export function createObjectApi({fetchImpl=fetch,timeoutMs=30000}={}){
   let sameOrigin=false;try{sameOrigin=!!req.headers.origin&&new URL(req.headers.origin).host===req.headers.host;}catch{}
   if(req.headers['sec-fetch-site']==='cross-site'||!sameOrigin){reply(403,{error:'请求来源不匹配。'});return;}
   if(!req.headers['content-type']?.startsWith('application/json')){reply(415,{error:'需要 JSON 请求。'});return;}
-  const id=createHash('sha256').update(req.headers.cookie??req.socket.remoteAddress??'').digest('hex'),now=Date.now();
+  const username=account(req);
+  const id=createHash('sha256').update(username ? 'account:'+username : (req.headers.cookie??req.socket.remoteAddress??'')).digest('hex'),now=Date.now();
   for(const [k,v] of sessions)if(!v.active&&now-v.start>60000)sessions.delete(k);
   const old=sessions.get(id);const state=old??{active:false,start:now,count:0};
   if(state.active){reply(409,{error:'已有检测请求进行中。'});return;}
@@ -54,7 +55,13 @@ export function createObjectApi({fetchImpl=fetch,timeoutMs=30000}={}){
   const abort=new AbortController();const timer=setTimeout(()=>abort.abort(),timeoutMs);const cancel=()=>{if(!res.writableEnded)abort.abort();};res.on('close',cancel);
   try{
    let raw='';for await(const chunk of req){raw+=chunk.toString();if(Buffer.byteLength(raw)>1_600_000){reply(413,{error:'截图过大，请缩小后重试。'});return;}}
-   let body,input;try{body=JSON.parse(raw);input=validateInput(body);}catch(e){reply(400,{error:e instanceof Error?e.message:'无效输入。'});return;}
+   let body,input;try{body=JSON.parse(raw);
+   if(body?.managed===true){
+    if(!username||!managed||body.provider!=='deepseek'){reply(403,{error:'当前会话不可使用内置 API。'});return;}
+    if(path.endsWith('/detect')&&body.consent!==true){reply(400,{error:'请先确认发送媒体和使用平台额度。'});return;}
+    body={...body,...managed};
+   }
+   input=validateInput(body);}catch(e){reply(400,{error:e instanceof Error?e.message:'无效输入。'});return;}
    const check=path.endsWith('/check');if(!check&&!imageValid(body.image)){reply(400,{error:'需要有效的 JPEG 截图。'});return;}
    const config=PROVIDERS[input.provider];
    const url=check?(input.provider==='openai'?'https://api.openai.com/v1/models/':'https://api.deepseek.com/models'):config.url;
