@@ -1,11 +1,12 @@
 import {CoordinateHands,type CoordinateHandOptions} from './coordinate-hands';
+import {initializeCameraTask,type HandCameraAssets} from './hand-camera-assets';
 import type {Mode,Point} from './core';
 
 type Detector={detect:(video:HTMLVideoElement,t:number,options?:CoordinateHandOptions)=>Promise<Point[]>;close:()=>void;fallback:boolean};
 
 // Match the learning workspace: module Workers are preferred, but some browsers
 // cannot run MediaPipe's WASM loader there. Keep the same camera stream on fallback.
-export async function createCoordinateDetector(mode:Mode,base:string,signal:AbortSignal,handOptions?:CoordinateHandOptions):Promise<Detector> {
+export async function createCoordinateDetector(mode:Mode,base:string,signal:AbortSignal,handOptions?:CoordinateHandOptions,assets?:HandCameraAssets&{useModule:boolean}):Promise<Detector> {
   let worker:Worker|undefined;
   let closed=false;
   let pending:((points:Point[])=>void)|undefined;
@@ -26,6 +27,7 @@ export async function createCoordinateDetector(mode:Mode,base:string,signal:Abor
   try {
     check();
     try {
+      if(assets&&!assets.useModule)throw Error('Classic loader needs the main thread');
       worker=new Worker(new URL('./vision.worker.ts',import.meta.url),{type:'module'});
       const candidate=worker;
       await new Promise<void>((resolve,reject)=>{
@@ -34,7 +36,7 @@ export async function createCoordinateDetector(mode:Mode,base:string,signal:Abor
         cancelInit=()=>finish(abortError());
         candidate.onerror=()=>finish(new Error('Worker initialization failed'));
         candidate.onmessage=e=>{if(e.data.type==='ready')finish();if(e.data.type==='error')finish(new Error(e.data.message));};
-        try {candidate.postMessage({type:'init',mode,base,coordinateHands:mode==='hand',handOptions});}catch(e){finish(e instanceof Error?e:new Error(String(e)));}
+        try {candidate.postMessage({type:'init',mode,base,coordinateHands:mode==='hand',handOptions,assets});}catch(e){finish(e instanceof Error?e:new Error(String(e)));}
       });
       check();
       candidate.onerror=()=>{failed?.(new Error('Detection worker failed'));pending=undefined;failed=undefined;};
@@ -55,12 +57,18 @@ export async function createCoordinateDetector(mode:Mode,base:string,signal:Abor
       worker?.terminate();worker=undefined;check();
     }
     const mp=await import('@mediapipe/tasks-vision');check();
-    const files=await mp.FilesetResolver.forVisionTasks(base+'wasm');check();
-    const opts={baseOptions:{modelAssetPath:base+'models/'+mode+'.task',delegate:'CPU' as const},runningMode:'VIDEO' as const};
+    let files=assets?.files??await mp.FilesetResolver.forVisionTasks(base+'wasm');check();
+    if(assets?.useModule){
+      const loader=await initializeCameraTask(import(/* @vite-ignore */ files.wasmLoaderPath),signal);
+      check();Object.assign(globalThis,{ModuleFactory:loader.default});
+      files={...files,wasmLoaderPath:''};
+    }
+    const opts={baseOptions:{modelAssetPath:assets?.modelPath??(base+'models/'+mode+'.task'),delegate:'CPU' as const},runningMode:'VIDEO' as const};
     let currentHandOptions=handOptions;
     let detect:(video:HTMLVideoElement,t:number)=>Point[];
     if(mode==='hand'){
-      const d=await mp.HandLandmarker.createFromOptions(files,{...opts,numHands:2,minHandDetectionConfidence:.6,minHandPresenceConfidence:.6});
+      const create=mp.HandLandmarker.createFromOptions(files,{...opts,numHands:2,minHandDetectionConfidence:.6,minHandPresenceConfidence:.6});
+      const d=assets?await initializeCameraTask(create,signal,value=>value.close()):await create;
       const hands=new CoordinateHands();
       closeMain=()=>d.close();detect=(video,t)=>hands.step(d.detectForVideo(video,t),currentHandOptions?.hand,currentHandOptions?.handMode==='dual',t);
     }else if(mode==='face'){

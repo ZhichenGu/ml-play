@@ -1,6 +1,8 @@
 import {useEffect,useRef,useState} from 'react';
 import type {CoordinateHandOptions} from './coordinate-hands';
 import type {Mode,Point} from './core';
+import {fetchHandCameraAssets,HAND_CAMERA_ASSET_REVISION,initializeCameraTask} from './hand-camera-assets';
+import {t,messageT} from './i18n';
 import {createCoordinateDetector} from './coordinate-detector';
 
 export function useLandmarkCamera(mode:Mode,onPoints:(points:Point[])=>void,handOptions?:CoordinateHandOptions) {
@@ -13,6 +15,7 @@ export function useLandmarkCamera(mode:Mode,onPoints:(points:Point[])=>void,hand
   const epoch=useRef(0),raf=useRef(0),busy=useRef(false),sentAt=useRef(0);
   const videoTime=useRef(-1),freshAt=useRef(0);
   const [state,setState]=useState<'off'|'opening'|'on'>('off');
+  const [startupStatus,setStartupStatus]=useState('');
   const [error,setError]=useState('');
   const [fallback,setFallback]=useState(false);
   const [size,setSize]=useState({width:1280,height:720});
@@ -23,23 +26,48 @@ export function useLandmarkCamera(mode:Mode,onPoints:(points:Point[])=>void,hand
     stream.current?.getTracks().forEach(track=>{track.onended=null;track.stop();});stream.current=null;
     busy.current=false;sentAt.current=0;videoTime.current=-1;freshAt.current=0;
     if(video.current)video.current.srcObject=null;
-    setState('off');setFallback(false);callback.current([]);
+    setState('off');setStartupStatus('');setFallback(false);callback.current([]);
   }
   async function start() {
     stop();setError('');setState('opening');
     const generation=epoch.current;
     let phase:'camera'|'model'='camera';
+    const mobileHand=mode==='hand'&&matchMedia('(max-width: 600px) and (orientation: portrait) and (pointer: coarse) and (hover: none)').matches;
+    let preloaded:Awaited<ReturnType<typeof fetchHandCameraAssets>>|undefined;
+    if(mobileHand)setStartupStatus(t('等待摄像头权限'));
     try {
       const media=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},aspectRatio:{ideal:16/9},facingMode:'user'},audio:false});
       if(generation!==epoch.current){media.getTracks().forEach(track=>track.stop());return;}
       stream.current=media;
       media.getTracks().forEach(track=>track.onended=()=>{if(generation===epoch.current){stop();setError('摄像头连接已中断。');}});
-      const element=video.current!;element.srcObject=media;await element.play();
+      const abort=new AbortController();controller.current=abort;
+      const element=video.current!;
+      element.srcObject=media;
+      if(mobileHand){
+        setStartupStatus(t('正在等待摄像头画面'));
+        await initializeCameraTask(element.play(),abort.signal,undefined,'摄像头没有开始播放，请关闭其他占用摄像头的应用后重试。');
+      }else await element.play();
       if(generation!==epoch.current)return;
       setSize({width:element.videoWidth||1280,height:element.videoHeight||720});
       phase='model';
-      const abort=new AbortController();controller.current=abort;
-      const active=await createCoordinateDetector(mode,new URL(import.meta.env.BASE_URL,location.href).href,abort.signal,handOptions);
+      const base=new URL(import.meta.env.BASE_URL,location.href).href;
+      let useModule=false;
+      if(mobileHand){
+        setStartupStatus(t('正在准备手部检测'));
+        const {FilesetResolver}=await import('@mediapipe/tasks-vision');
+        useModule=await FilesetResolver.isSimdSupported();
+        const files=await FilesetResolver.forVisionTasks(base+'wasm',useModule);
+        abort.signal.throwIfAborted();
+        const versioned=(url:string)=>url+'?v='+HAND_CAMERA_ASSET_REVISION;
+        setStartupStatus(t('正在下载手部模型'));
+        preloaded=await fetchHandCameraAssets({wasmLoaderPath:versioned(files.wasmLoaderPath),wasmBinaryPath:versioned(files.wasmBinaryPath)},versioned(base+'models/hand.task'),abort,bytes=>{
+          if(generation===epoch.current)setStartupStatus(t('正在下载手部模型 · 已下载 {0} MB',(bytes/1_000_000).toFixed(1)));
+        });
+        abort.signal.throwIfAborted();
+        setStartupStatus(t('正在初始化手部检测'));
+      }
+      const active=await createCoordinateDetector(mode,base,abort.signal,handOptions,
+        preloaded?{files:preloaded.files,modelPath:preloaded.modelPath,useModule}:undefined);
       if(generation!==epoch.current){active.close();return;}
       detector.current=active;setFallback(active.fallback);setState('on');
       async function tick(now:number) {
@@ -65,14 +93,17 @@ export function useLandmarkCamera(mode:Mode,onPoints:(points:Point[])=>void,hand
         } finally {if(generation===epoch.current)busy.current=false;}
       }
       raf.current=requestAnimationFrame(tick);
-    } catch {
-      if(generation===epoch.current){stop();setError(phase==='model'?'检测模型加载失败，请重新开启摄像头。':'无法开启摄像头，请检查设备与权限。');}
-    }
+    } catch(e) {
+      if(generation===epoch.current){
+        stop();
+        setError(mobileHand&&e instanceof Error?messageT(e.message):phase==='model'?'检测模型加载失败，请重新开启摄像头。':'无法开启摄像头，请检查设备与权限。');
+      }
+    }finally{preloaded?.release();}
   }
   useEffect(()=>{
     const hidden=()=>{if(document.hidden)stop();};
     document.addEventListener('visibilitychange',hidden);window.addEventListener('motion-stop',stop);
     return ()=>{stop();document.removeEventListener('visibilitychange',hidden);window.removeEventListener('motion-stop',stop);};
   },[mode]);
-  return {video,state,error,size,start,stop,fallback,clearError:()=>setError('')};
+  return {video,state,error,size,start,stop,fallback,startupStatus,clearError:()=>setError('')};
 }

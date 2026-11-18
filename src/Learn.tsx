@@ -1,9 +1,22 @@
+import {ChevronDown} from 'lucide-react';
 import React from 'react';
 import {ArrowLeft,ArrowUpRight,Download,Usb,Radio,AudioWaveform,FileCode,Wrench} from 'lucide-react';
 import {getLanguage,t} from './i18n';
 import {LEARN_GUIDES,EXAMPLE_DOWNLOADS,type GuideId} from './learn-content';
 const ICONS={serial:Usb,mqtt:Radio,osc:AudioWaveform,examples:FileCode,troubleshooting:Wrench};
-export function LearnLinks({onOpen}:{onOpen:(id:GuideId)=>void}){return <section className="learn-links" aria-labelledby="learn-title"><h2 id="learn-title">{t('教程与示例')}</h2><div className="learn-cards">{LEARN_GUIDES.map(g=>{const Icon=ICONS[g.id];return <button key={g.id} className="learn-card" onClick={()=>onOpen(g.id)}><span className="learn-card-icon"><Icon size={19}/></span><span><strong>{t(g.title)}</strong><small>{t(g.description)}</small></span><ArrowUpRight size={16} aria-hidden="true"/></button>;})}</div></section>;}
+export function LearnLinks({onOpen}:{onOpen:(id:GuideId)=>void}){
+ const [expanded,setExpanded]=React.useState(false);
+ return <section className="learn-links" data-mobile-expanded={expanded} aria-labelledby="learn-title">
+   <h2 id="learn-title">{t('教程与示例')}</h2>
+   <button type="button" className="mobile-learn-toggle" aria-expanded={expanded} aria-controls="home-learn-cards" onClick={()=>setExpanded(v=>!v)}>
+     <span>{t('教程与示例')}</span><ChevronDown size={16} aria-hidden="true"/>
+   </button>
+   <div className="learn-cards" id="home-learn-cards">{LEARN_GUIDES.map(g=>{
+     const Icon=ICONS[g.id];
+     return <button key={g.id} className="learn-card" onClick={()=>onOpen(g.id)}><span className="learn-card-icon"><Icon size={19}/></span><span><strong>{t(g.title)}</strong><small>{t(g.description)}</small></span><ArrowUpRight size={16} aria-hidden="true"/></button>;
+   })}</div>
+ </section>;
+}
 export function LearnPage({guideId,onSelect,onBack}:{guideId:GuideId;onSelect:(id:GuideId)=>void;onBack:()=>void}){
  const guide=LEARN_GUIDES.find(g=>g.id===guideId)!;
  const videoBase=(import.meta.env?.BASE_URL??'/')+'tutorials/mqtt-'+getLanguage();

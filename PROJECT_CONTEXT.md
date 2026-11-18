@@ -1,15 +1,15 @@
 # Platform 当前交接
 
-更新：2026-11-16。此文件只保留当前状态，新聊天先读本页及 AGENTS，再按任务选读源码；不要默认加载历史全文。
+更新：2026-11-18。此文件只保留当前状态，新聊天先读本页及 AGENTS，再按任务选读源码；不要默认加载历史全文。
 
 ## 位置与版本
 
 | 对象 | 当前记录 |
 | --- | --- |
-| 本地正式源码 | `/Users/zhichengu/Documents/GitHub/Wekinator_fork`，0.107 / package 0.107.0 |
-| 预览副本 | `/Users/zhichengu/Documents/Codex/2026-11-11/platform-autosave-preview`，0.107；功能实现已合回正式 |
+| 本地正式源码 | `/Users/zhichengu/Documents/GitHub/Wekinator_fork`，网页 0.113 / package 0.113.0 |
+| 预览副本 | `/Users/zhichengu/Documents/Codex/2026-11-11/platform-autosave-preview`，0.113；预览另含内置 API 实验，正式源码仅合入手机界面和配套摄像头加载 |
 | 本机入口 | 预览 `http://localhost:5184/`；正式目录合回检查 `http://localhost:5185/`，服务可能随进程结束，使用前确认 |
-| GitHub | https://github.com/ZhichenGu/ml-play ，用户自行 push；文档整理前本地 HEAD `f7573df`，工作区干净。交接文档已由用户提交至 `1e99757` 并推送；本轮发布记录与 README 更新未提交/推送 |
+| GitHub | https://github.com/ZhichenGu/ml-play，网页通过 main 发布；实际部署以 Render 为准 |
 | 线上 | https://ml-play.onrender.com/ ，最近有记录的线上核验为 0.97；本轮未查询部署，不推断仍是或已是哪个版本 |
 | 桌面发布 | [GitHub v0.107.0](https://github.com/ZhichenGu/ml-play/releases/tag/v0.107.0)，Mac arm64 DMG、Windows x64 测试包、SHA256SUMS。Mac 从最终包复制至独立临时目录启动并重开验证，未替换 /Applications 旧版；Windows 真机待验 |
 
@@ -39,6 +39,8 @@ Platform 用相机/麦克风制作交互，结果输出状态灯、Serial、MQTT
 保留原始录制、训练/测试/负例用途、稳定 ID、旧协议和隐式参考。双手/混合动作学习暂缓，旧实验项目只保留/导出。改变特征/关注点须使训练失效，不擅自改旧项目或全局调阈值。完整约束见 AGENTS。
 
 ## 验证与下一步
+
+0.113 网页候选：桌面 Chrome 同源从 0.107 打开旧项目，检查正例、负例、独立测试原始帧、训练状态和阈值，改名保存再重开通过。1280×840 和 600×840 桌面保留原工作台。手机竖屏 390×650 和 320×568 使用实际 MediaPipe 模型与模拟视频走通动态录制、训练、触发。其余五种手部模式用合成检测数据验证。构建和 274 项测试通过。正式源码的登录、API 和桌面打包文件与基线一致。
 
 0.107 合回：正式目录构建与 274 项测试（244 源码 + 30 服务端）通过；35 个实现/版本文件与预览逐字节一致。正式目录实际走新建→确认形变→动作对照→刷新重开，选择与推荐保留。预览已检查三类六种示意及动态切换/暂停/重播/保存，详见 [当前验收](docs/当前交互与验收.md)。
 

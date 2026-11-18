@@ -13,8 +13,8 @@ self.onmessage = async (event: MessageEvent) => {
   if (data.type === 'init') {
     try {
       mode = data.mode;coordinateHands=!!data.coordinateHands;stableHand=!!data.stableHand;handOptions=data.handOptions??{};hands=new CoordinateHands();
-      const files = await FilesetResolver.forVisionTasks(data.base + 'wasm');
-      const baseOptions = {modelAssetPath: data.base + 'models/' + mode + '.task', delegate: 'CPU' as const};
+      const files = data.assets?.files ?? await FilesetResolver.forVisionTasks(data.base + 'wasm');
+      const baseOptions = {modelAssetPath: data.assets?.modelPath ?? (data.base + 'models/' + mode + '.task'), delegate: 'CPU' as const};
       detector?.close();
       if (mode === 'hand') detector = await HandLandmarker.createFromOptions(files,{baseOptions,runningMode:'VIDEO',numHands:coordinateHands||stableHand?2:1,minHandDetectionConfidence:.6,minHandPresenceConfidence:.6});
       if (mode === 'face') detector = await FaceLandmarker.createFromOptions(files,{baseOptions,runningMode:'VIDEO',numFaces:1,outputFaceBlendshapes:true});
