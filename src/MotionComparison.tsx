@@ -34,15 +34,16 @@ function CompareDialog({sample,current,mode,feature,focus,onClose}:{sample:Sampl
  <div className="motion-playback"><button className="secondary small" onClick={()=>{if(progress>=1){position.current=0;setProgress(0);}setPlaying(v=>!v);}}>{playing?<Pause size={14}/>:<Play size={14}/>} {t(playing?'暂停':'播放')}</button><input aria-label={t('对照播放进度')} type="range" min="0" max="1" step=".001" value={progress} onChange={e=>{setPlaying(false);position.current=+e.target.value;setProgress(+e.target.value);}}/></div>
  <p className="motion-footnote">{t('用于观察动作差异，不代表识别评分；回放本身不发送输出。')}</p></dialog>;
 }
-export function MotionComparison({action,mode,feature,frame,camera,stage,sourceSize,focus,recording,onOpenChange,handPath}:{action:Action;mode:Mode;feature:FeatureMode;frame:Frame|null;camera:boolean;stage:React.RefObject<HTMLDivElement>;sourceSize:{width:number;height:number};focus?:number[];recording:boolean;handPath?:'palm'|'index'|'wrist';onOpenChange?:(open:boolean)=>void}){
+export function MotionComparison({action,mode,feature,frame,camera,headingRef,stage,sourceSize,focus,recording,onOpenChange,handPath}:{action:Action;mode:Mode;feature:FeatureMode;frame:Frame|null;camera:boolean;headingRef:React.RefObject<HTMLDivElement>;stage:React.RefObject<HTMLDivElement>;sourceSize:{width:number;height:number};focus?:number[];recording:boolean;handPath?:'palm'|'index'|'wrist';onOpenChange?:(open:boolean)=>void}){
  const [open,setOpen]=useState(false),[chosen,setChosen]=useState('latest'),[trail,setTrail]=useState(true),[playing,setPlaying]=useState(false),[progress,setProgress]=useState(0),[review,setReview]=useState<{sample:Sample;current:Frame[]}|null>(null);
  useEffect(()=>{onOpenChange?.(open);return()=>onOpenChange?.(false);},[open,onOpenChange]);
  const playbackPosition=useRef(0);const focusKey=focus?.join(',')??'';
  const capture=useRef(new ComparisonCapture());const [recent,setRecent]=useState<Frame[]>([]);const [frozen,setFrozen]=useState<Frame[]>([]);
  const samples=comparisonSamples(action),selected=samples.find(v=>v.sample.id===chosen)??samples[0],sample=selected?.sample;
- const [heading,setHeading]=useState<HTMLElement|null>(null);
+ const [heading,setHeading]=useState<HTMLDivElement|null>(null);
+ useEffect(()=>setHeading(headingRef.current),[headingRef]);
  const [box,setBox]=useState({left:0,top:0,width:0,height:0});const [target,setTarget]=useState<HTMLElement|null>(null);
- useEffect(()=>{const el=stage.current;if(!el)return;setTarget(el.querySelector<HTMLElement>('.camera-content'));setHeading(el.parentElement?.querySelector<HTMLElement>('.camera-heading>div')??null);const resize=()=>setBox(containBox(el.clientWidth,el.clientHeight,sourceSize.width,sourceSize.height));resize();const observer=new ResizeObserver(resize);observer.observe(el);return()=>observer.disconnect();},[stage,sourceSize.width,sourceSize.height]);
+ useEffect(()=>{const el=stage.current;if(!el)return;setTarget(el.querySelector<HTMLElement>('.camera-content'));const resize=()=>setBox(containBox(el.clientWidth,el.clientHeight,sourceSize.width,sourceSize.height));resize();const observer=new ResizeObserver(resize);observer.observe(el);return()=>observer.disconnect();},[stage,sourceSize.width,sourceSize.height]);
  useEffect(()=>{capture.current.reset(performance.now());setRecent([]);setFrozen([]);setPlaying(false);setProgress(0);setReview(null);},[action.id,feature,focusKey,handPath]);
  useEffect(()=>{if(!camera)setFrozen(capture.current.snapshot());else setFrozen([]);capture.current.reset(performance.now());setRecent([]);setPlaying(false);},[camera]);
  useEffect(()=>{if(!open||!camera||recording)return;if(!frame){capture.current.lose();setRecent([]);return;}if(capture.current.append(frame,sample?.duration??3000)){setFrozen([]);setRecent(capture.current.trail(performance.now()));}},[frame,open,camera,recording,sample?.duration]);

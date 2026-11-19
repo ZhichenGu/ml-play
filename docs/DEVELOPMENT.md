@@ -54,7 +54,7 @@ React 18.3 + TS/Vite、Lucide、普通 CSS；MediaPipe Tasks Vision 0.10.35。Wo
 
 | 配置 | 回退与作用 |
 | --- | --- |
-| `PLATFORM_PASSWORD_ACCOUNT` | 指定一个已启用的账号。设置四位数时，若只有一个账号启用，则可省略此项。两项都留空时，继续显示原账号和密码表单。 |
+| `PLATFORM_PASSWORD_ACCOUNT` | 指定一个已启用的账号。只有一个账号启用时会自动选用，无需填写此项。多个账号启用且未设置单密码入口时，才显示账号和密码表单。 |
 | `PLATFORM_ACCESS_PIN` | 仅保存在 Render 的环境变量中，填四位数字，保留开头的零。设置后，单密码入口使用此值。留空时，如指定了账号，单密码入口继续使用该账号的密码。更换此值会让原密码登录会话失效。 |
 | `PLATFORM_DEEPSEEK_API_KEY` | 存放实际视觉 DeepSeek 凭证，留空时不显示内置 API。访客使用自己的 Key；密码会话调用内置检测仍需同意发送与使用平台额度。 |
 | `HOST` 和 `PORT` | 托管服务监听 `0.0.0.0` 和 Render 提供的端口。本机默认绑定回环地址。 |

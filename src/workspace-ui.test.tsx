@@ -1,6 +1,7 @@
 import React from 'react';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {Activity} from 'lucide-react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {SettingFold} from './WorkspacePreview';
 import {ActionItem} from './ActionItem';
@@ -46,10 +47,11 @@ test('MQTT downloads match trigger versus continuous outputs',async()=>{
 
 test('empty libraries offer category-specific creation while populated libraries keep project actions',async()=>{
  const {ProjectLibrary}=await import('./ProjectLibrary');
- for(const title of ['追踪项目','物体检测项目','声音项目']){
- const html=renderToStaticMarkup(<ProjectLibrary title={title} empty="暂无项目" items={[]} onOpen={()=>{}} onRename={()=>{}} onDelete={()=>{}} onCreate={()=>{}}/>);
+ const props={id:'test-library',mobileActive:true,icon:Activity,empty:'暂无项目',onOpen:()=>{},onRename:()=>{},onDelete:()=>{},onCreate:()=>{},onDeleteAll:()=>{}};
+ for(const title of ['动作追踪','视觉识别','声音识别']){
+ const html=renderToStaticMarkup(<ProjectLibrary {...props} title={title} items={[]}/>);
  assert.match(html,/class="library-create"/);assert.ok(html.includes('aria-label="新建'+title+'"'));
  }
- const populated=renderToStaticMarkup(<ProjectLibrary title="追踪项目" empty="暂无项目" items={[{id:'1',name:'My wave',detail:'hand'}]} onOpen={()=>{}} onRename={()=>{}} onDelete={()=>{}} onCreate={()=>{}}/>);
+ const populated=renderToStaticMarkup(<ProjectLibrary {...props} title="动作追踪" items={[{id:'1',name:'My wave',detail:'hand'}]}/>);
  assert.ok(!populated.includes('class="library-create"'));assert.match(populated,/My wave/);assert.match(populated,/重命名项目 My wave/);
 });

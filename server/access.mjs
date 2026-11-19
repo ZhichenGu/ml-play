@@ -63,7 +63,7 @@ export function createAccessGate({password,users,usersFile,passwordAccount=proce
   const records=accounts?(users?parseUsers({version:1,users}):loadUsers(usersFile)):[];
   const byName=new Map(records.map(u=>[u.username,u]));
   const hasEntryPin=accounts&&!!entryPin;
-  if(hasEntryPin&&!passwordAccount){
+  if(accounts&&!passwordAccount){
     const active=records.filter(user=>user.enabled);
     if(active.length===1)passwordAccount=active[0].username;
   }
